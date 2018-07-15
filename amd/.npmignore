@@ -1,0 +1,10 @@
+# NPM Ignore
+
+# ignore everything
+*
+
+# ... but these files
+!package.json
+!bundle/applicationinsights-channel-js.js
+!bundle/applicationinsights-channel-js.js.map
+!bundle/applicationinsights-channel-js.d.ts

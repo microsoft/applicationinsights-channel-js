@@ -1,0 +1,17 @@
+{
+    "name": "applicationinsights-channel-js",
+    "version": "0.0.13",
+    "description": "Microsoft Application Insights JavaScript SDK Channel",
+    "main": "bundle/applicationinsights-channel-js.js",
+    "types": "bundle/applicationinsights-channel-js.d.ts",
+    "devDependencies": {
+        "typescript": "2.5.3"
+    },
+    "dependencies": {
+        "applicationinsights-common": "0.0.49",
+        "applicationinsights-core-js": "0.0.39"
+    },
+    "publishConfig": {
+        "registry": "https://mseng.pkgs.visualstudio.com/_packaging/ApplicationInsights-Team/npm/registry"
+    }
+}
