@@ -32,7 +32,7 @@ cjs>
   npm publish --tag cjs  
 
 amd> 
-  grunt channel  
+  grunt  
   Please ensure unit tests pass  
   cd amd  
   update version in package.json (version number odd for amd)  
