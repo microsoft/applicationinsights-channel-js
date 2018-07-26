@@ -136,7 +136,7 @@ export abstract class EnvelopeCreator {
             }
         }
 
-        // loop through the envelope tags (extension of Part A) and pick out hte ones that should go in outgoing envelope tags
+        // loop through the envelope tags (extension of Part A) and pick out the ones that should go in outgoing envelope tags
         telemetryItem.tags.forEach((tag) => {
             for (let key in tag) {
                 if (tag.hasOwnProperty(key)) {
@@ -226,6 +226,32 @@ export class PageViewEnvelopeCreator extends EnvelopeCreator {
         let name = telemetryItem.data.baseData.name;
         let url = telemetryItem.data.baseData.uri;
         let duration = telemetryItem.data.baseData.duration;
+
+        // refUri is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
+        if (!CoreUtils.isNullOrUndefined(telemetryItem.data.baseData.refUri)) {
+            customProperties["refUri"] = telemetryItem.data.baseData.refUri;
+        }
+
+        // pageType is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
+        if (!CoreUtils.isNullOrUndefined(telemetryItem.data.baseData.pageType)) {
+            customProperties["pageType"] = telemetryItem.data.baseData.pageType;
+        }
+
+        // isLoggedIn is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
+        if (!CoreUtils.isNullOrUndefined(telemetryItem.data.baseData.isLoggedIn)) {
+            customProperties["isLoggedIn"] = telemetryItem.data.baseData.isLoggedIn;
+        }
+
+        // pageTags is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
+        if (!CoreUtils.isNullOrUndefined(telemetryItem.data.baseData.pageTags)) {
+            let pageTags = telemetryItem.data.baseData.pageTags;
+            for (let key in pageTags) {
+                if (pageTags.hasOwnProperty(key)) {
+                    customProperties[key] = pageTags[key];
+                }
+            }
+        }
+
         let baseData = new PageView(name, url, duration, customProperties, customMeasurements);
         let data = new Data<PageView>(PageView.dataType, baseData);
         return EnvelopeCreator.createEnvelope<PageView>(PageView.envelopeType, telemetryItem, data);

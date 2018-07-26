@@ -60,8 +60,6 @@ export class Sender implements IChannelControlsAI {
         throw new Error("Method not implemented.");
     }
 
-    public setNextPlugin: (next: ITelemetryPlugin) => void;
-
     /**
      * The configuration for this sender instance
      */
@@ -106,6 +104,8 @@ export class Sender implements IChannelControlsAI {
      * Handle to the timer for delayed sending of batches of data.
      */
     private _timeoutHandle: any;
+
+    private _nextPlugin: ITelemetryPlugin;
 
     public initialize(config: IConfiguration) {
         this.identifier = "AppInsightsChannelPlugin";
@@ -192,6 +192,13 @@ export class Sender implements IChannelControlsAI {
                 "Failed adding telemetry to the sender's buffer, some telemetry will be lost: " + Util.getExceptionName(e),
                 { exception: Util.dump(e) });
         }
+
+        // hand off the telemetry item to the next plugin
+        this._nextPlugin.processTelemetry(telemetryItem);
+    }
+
+    public setNextPlugin(next: ITelemetryPlugin) {
+        this._nextPlugin = next;
     }
 
     /**

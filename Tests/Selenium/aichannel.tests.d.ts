@@ -459,7 +459,6 @@ declare module "Sender" {
         resume(): void;
         flush(): void;
         teardown(): void;
-        setNextPlugin: (next: ITelemetryPlugin) => void;
         /**
          * The configuration for this sender instance
          */
@@ -496,8 +495,10 @@ declare module "Sender" {
          * Handle to the timer for delayed sending of batches of data.
          */
         private _timeoutHandle;
+        private _nextPlugin;
         initialize(config: IConfiguration): void;
         processTelemetry(telemetryItem: ITelemetryItem): void;
+        setNextPlugin(next: ITelemetryPlugin): void;
         /**
          * xhr state changes
          */
