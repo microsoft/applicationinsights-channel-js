@@ -27,7 +27,7 @@
         "typescript": "2.5.3"
     },
     "dependencies": {
-        "applicationinsights-common": "0.0.49",
+        "applicationinsights-common": "0.0.51",
         "applicationinsights-core-js": "0.0.51"
     }
 }
