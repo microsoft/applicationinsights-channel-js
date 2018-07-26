@@ -329,6 +329,18 @@ declare module "EnvelopeCreator" {
         }): {
             [key: string]: any;
         };
+        protected static extractProperties(data: {
+            [key: string]: any;
+        }): {
+            [key: string]: any;
+        };
+        protected static extractPropsAndMeasurements(data: {
+            [key: string]: any;
+        }, properties: {
+            [key: string]: any;
+        }, measurements: {
+            [key: string]: any;
+        }): void;
         protected static createEnvelope<T>(envelopeType: string, telemetryItem: ITelemetryItem, data: Data<T>): IEnvelope;
     }
     export class DependencyEnvelopeCreator extends EnvelopeCreator {
@@ -485,7 +497,7 @@ declare module "Sender" {
          */
         private _timeoutHandle;
         initialize(config: IConfiguration): void;
-        processTelemetry(envelope: ITelemetryItem): void;
+        processTelemetry(telemetryItem: ITelemetryItem): void;
         /**
          * xhr state changes
          */

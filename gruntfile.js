@@ -51,5 +51,5 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.registerTask("default", ["ts:default"]);
     grunt.registerTask("channelcjs", ["ts:channelcjs"])
-    grunt.registerTask("test", ["ts:channel", "ts:test", "qunit:channel"]);
+    grunt.registerTask("test", ["ts:default", "ts:test", "qunit:channel"]);
 };
