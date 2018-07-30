@@ -60,8 +60,6 @@ export class Sender implements IChannelControlsAI {
         throw new Error("Method not implemented.");
     }
 
-    public setNextPlugin: (next: ITelemetryPlugin) => void;
-
     /**
      * The configuration for this sender instance
      */
@@ -107,6 +105,8 @@ export class Sender implements IChannelControlsAI {
      */
     private _timeoutHandle: any;
 
+    private _nextPlugin: ITelemetryPlugin;
+
     public initialize(config: IConfiguration) {
         this.identifier = "AppInsightsChannelPlugin";
         this._consecutiveErrors = 0;
@@ -132,7 +132,7 @@ export class Sender implements IChannelControlsAI {
         }
     }
 
-    public processTelemetry(envelope: ITelemetryItem) {
+    public processTelemetry(telemetryItem: ITelemetryItem) {
         try {
             // if master off switch is set, don't send any data
             if (this._config.disableTelemetry()) {
@@ -141,7 +141,7 @@ export class Sender implements IChannelControlsAI {
             }
 
             // validate input
-            if (!envelope) {
+            if (!telemetryItem) {
                 _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CannotSendEmptyTelemetry, "Cannot send empty telemetry");
                 return;
             }
@@ -153,14 +153,14 @@ export class Sender implements IChannelControlsAI {
             }
 
             // first we need to validate that the envelope passed down is valid
-            let isValid: boolean = Sender._validate(envelope);
+            let isValid: boolean = Sender._validate(telemetryItem);
             if (!isValid) {
                 _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.TelemetryEnvelopeInvalid, "Invalid telemetry envelope");
                 return;
             }
 
             // construct an envelope that Application Insights endpoint can understand
-            let aiEnvelope = Sender._constructEnvelope(envelope);
+            let aiEnvelope = Sender._constructEnvelope(telemetryItem);
             if (!aiEnvelope) {
                 _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CreateEnvelopeError, "Unable to create an AppInsights envelope");
                 return;
@@ -192,6 +192,13 @@ export class Sender implements IChannelControlsAI {
                 "Failed adding telemetry to the sender's buffer, some telemetry will be lost: " + Util.getExceptionName(e),
                 { exception: Util.dump(e) });
         }
+
+        // hand off the telemetry item to the next plugin
+        this._nextPlugin.processTelemetry(telemetryItem);
+    }
+
+    public setNextPlugin(next: ITelemetryPlugin) {
+        this._nextPlugin = next;
     }
 
     /**
@@ -355,7 +362,7 @@ export class Sender implements IChannelControlsAI {
     }
 
     public static _constructEnvelope(envelope: ITelemetryItem): IEnvelope {
-        switch (envelope.baseType) {
+        switch (envelope.data.baseType) {
             case Event.dataType:
                 return EventEnvelopeCreator.EventEnvelopeCreator.Create(envelope);
             case Trace.dataType:
@@ -394,7 +401,7 @@ export class Sender implements IChannelControlsAI {
 
     private static _validate(envelope: ITelemetryItem): boolean {
         // call the appropriate Validate depending on the baseType
-        switch (envelope.baseType) {
+        switch (envelope.data.baseType) {
             case Event.dataType:
                 return EventValidator.EventValidator.Validate(envelope);
             case Trace.dataType:

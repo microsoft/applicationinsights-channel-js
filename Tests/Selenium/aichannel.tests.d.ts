@@ -329,6 +329,18 @@ declare module "EnvelopeCreator" {
         }): {
             [key: string]: any;
         };
+        protected static extractProperties(data: {
+            [key: string]: any;
+        }): {
+            [key: string]: any;
+        };
+        protected static extractPropsAndMeasurements(data: {
+            [key: string]: any;
+        }, properties: {
+            [key: string]: any;
+        }, measurements: {
+            [key: string]: any;
+        }): void;
         protected static createEnvelope<T>(envelopeType: string, telemetryItem: ITelemetryItem, data: Data<T>): IEnvelope;
     }
     export class DependencyEnvelopeCreator extends EnvelopeCreator {
@@ -447,7 +459,6 @@ declare module "Sender" {
         resume(): void;
         flush(): void;
         teardown(): void;
-        setNextPlugin: (next: ITelemetryPlugin) => void;
         /**
          * The configuration for this sender instance
          */
@@ -484,8 +495,10 @@ declare module "Sender" {
          * Handle to the timer for delayed sending of batches of data.
          */
         private _timeoutHandle;
+        private _nextPlugin;
         initialize(config: IConfiguration): void;
-        processTelemetry(envelope: ITelemetryItem): void;
+        processTelemetry(telemetryItem: ITelemetryItem): void;
+        setNextPlugin(next: ITelemetryPlugin): void;
         /**
          * xhr state changes
          */
