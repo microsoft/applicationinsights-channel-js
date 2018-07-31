@@ -2,7 +2,8 @@
 import {
     IEnvelope, Data, Envelope,
     RemoteDependencyData, Event, Exception,
-    Metric, PageView, Trace, PageViewPerformance
+    Metric, PageView, Trace, PageViewPerformance, _InternalLogging,
+    LoggingSeverity, _InternalMessageId
 } from 'applicationinsights-common';
 import { ITelemetryItem, CoreUtils } from 'applicationinsights-core-js';
 
@@ -71,27 +72,10 @@ const baseData: string = "baseData";
 export abstract class EnvelopeCreator {
     abstract Create(telemetryItem: ITelemetryItem): IEnvelope;
 
-    protected static extractMeasurements(properties: { [key: string]: any }): { [key: string]: any } {
-        let customMeasurements: { [key: string]: any } = null;
-        for (let key in properties) {
-            if (properties.hasOwnProperty(key) && key !== baseType && key !== baseData) {
-                let value = properties[key];
-                if (typeof value === "number") {
-                    if (!customMeasurements) {
-                        customMeasurements = {};
-                    }
-                    customMeasurements[key] = value;
-                }
-            }
-        }
-
-        return customMeasurements;
-    }
-
     protected static extractProperties(data: { [key: string]: any }): { [key: string]: any } {
         let customProperties: { [key: string]: any } = null;
         for (let key in data) {
-            if (data.hasOwnProperty(key) && key !== baseType && key !== baseData) {
+            if (data.hasOwnProperty(key)) {
                 let value = data[key];
                 if (typeof value !== "number") {
                     if (!customProperties) {
@@ -105,11 +89,10 @@ export abstract class EnvelopeCreator {
         return customProperties;
     }
 
-
     protected static extractPropsAndMeasurements(data: { [key: string]: any }, properties: { [key: string]: any }, measurements: { [key: string]: any }) {
         if (!CoreUtils.isNullOrUndefined(data)) {
             for (let key in data) {
-                if (data.hasOwnProperty(key) && key !== baseType && key !== baseData) {
+                if (data.hasOwnProperty(key)) {
                     let value = data[key];
                     if (typeof value === "number") {
                         measurements[key] = value;
@@ -155,16 +138,22 @@ export class DependencyEnvelopeCreator extends EnvelopeCreator {
     static DependencyEnvelopeCreator = new DependencyEnvelopeCreator();
 
     Create(telemetryItem: ITelemetryItem): IEnvelope {
+        if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
+            _InternalLogging.throwInternal(
+                LoggingSeverity.CRITICAL,
+                _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
+        }
+
         let customMeasurements = {};
         let customProperties = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-        let id = telemetryItem.data.baseData.id;
-        let absoluteUrl = telemetryItem.data.baseData.absoluteUrl;
-        let command = telemetryItem.data.baseData.command;
-        let totalTime = telemetryItem.data.baseData.totalTime;
-        let success = telemetryItem.data.baseData.success;
-        let resultCode = telemetryItem.data.baseData.resultCode;
-        let method = telemetryItem.data.baseData.method;
+        let id = telemetryItem.baseData.id;
+        let absoluteUrl = telemetryItem.baseData.absoluteUrl;
+        let command = telemetryItem.baseData.command;
+        let totalTime = telemetryItem.baseData.totalTime;
+        let success = telemetryItem.baseData.success;
+        let resultCode = telemetryItem.baseData.resultCode;
+        let method = telemetryItem.baseData.method;
         let baseData = new RemoteDependencyData(id, absoluteUrl, command, totalTime, success, resultCode, method, customProperties, customMeasurements);
         let data = new Data<RemoteDependencyData>(RemoteDependencyData.dataType, baseData);
         return EnvelopeCreator.createEnvelope<RemoteDependencyData>(RemoteDependencyData.envelopeType, telemetryItem, data);
@@ -175,10 +164,16 @@ export class EventEnvelopeCreator extends EnvelopeCreator {
     static EventEnvelopeCreator = new EventEnvelopeCreator();
 
     Create(telemetryItem: ITelemetryItem): IEnvelope {
+        if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
+            _InternalLogging.throwInternal(
+                LoggingSeverity.CRITICAL,
+                _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
+        }
+
         let customProperties = {};
         let customMeasurements = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-        let eventName = telemetryItem.data.baseData.name;
+        let eventName = telemetryItem.baseData.name;
         let baseData = new Event(eventName, customProperties, customMeasurements);
         let data = new Data<Event>(Event.dataType, baseData);
         return EnvelopeCreator.createEnvelope<Event>(Event.envelopeType, telemetryItem, data);
@@ -189,11 +184,17 @@ export class ExceptionEnvelopeCreator extends EnvelopeCreator {
     static ExceptionEnvelopeCreator = new ExceptionEnvelopeCreator();
 
     Create(telemetryItem: ITelemetryItem): IEnvelope {
+        if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
+            _InternalLogging.throwInternal(
+                LoggingSeverity.CRITICAL,
+                _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
+        }
+
         let customProperties = {};
         let customMeasurements = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-        let exception = telemetryItem.data.baseData.exception;
-        let severityLevel = telemetryItem.data.baseData.severityLevel;
+        let exception = telemetryItem.baseData.exception;
+        let severityLevel = telemetryItem.baseData.severityLevel;
         let baseData = new Exception(exception, customProperties, customMeasurements, severityLevel);
         let data = new Data<Exception>(Exception.dataType, baseData);
         return EnvelopeCreator.createEnvelope<Exception>(Exception.envelopeType, telemetryItem, data);
@@ -204,12 +205,18 @@ export class MetricEnvelopeCreator extends EnvelopeCreator {
     static MetricEnvelopeCreator = new MetricEnvelopeCreator();
 
     Create(telemetryItem: ITelemetryItem): IEnvelope {
+        if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
+            _InternalLogging.throwInternal(
+                LoggingSeverity.CRITICAL,
+                _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
+        }
+
         let customProperties = EnvelopeCreator.extractProperties(telemetryItem.data);
-        let name = telemetryItem.data.baseData.name;
-        let average = telemetryItem.data.baseData.average;
-        let sampleCount = telemetryItem.data.baseData.sampleCount;
-        let min = telemetryItem.data.baseData.min;
-        let max = telemetryItem.data.baseData.max;
+        let name = telemetryItem.baseData.name;
+        let average = telemetryItem.baseData.average;
+        let sampleCount = telemetryItem.baseData.sampleCount;
+        let min = telemetryItem.baseData.min;
+        let max = telemetryItem.baseData.max;
         let baseData = new Metric(name, average, sampleCount, min, max, customProperties);
         let data = new Data<Metric>(Metric.dataType, baseData);
         return EnvelopeCreator.createEnvelope<Metric>(Metric.envelopeType, telemetryItem, data);
@@ -220,31 +227,37 @@ export class PageViewEnvelopeCreator extends EnvelopeCreator {
     static PageViewEnvelopeCreator = new PageViewEnvelopeCreator();
 
     Create(telemetryItem: ITelemetryItem): IEnvelope {
+        if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
+            _InternalLogging.throwInternal(
+                LoggingSeverity.CRITICAL,
+                _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
+        }
+
         let customProperties = {};
         let customMeasurements = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-        let name = telemetryItem.data.baseData.name;
-        let url = telemetryItem.data.baseData.uri;
-        let duration = telemetryItem.data.baseData.duration;
+        let name = telemetryItem.baseData.name;
+        let url = telemetryItem.baseData.uri;
+        let duration = telemetryItem.baseData.duration;
 
         // refUri is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
-        if (!CoreUtils.isNullOrUndefined(telemetryItem.data.baseData.refUri)) {
-            customProperties["refUri"] = telemetryItem.data.baseData.refUri;
+        if (!CoreUtils.isNullOrUndefined(telemetryItem.baseData.refUri)) {
+            customProperties["refUri"] = telemetryItem.baseData.refUri;
         }
 
         // pageType is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
-        if (!CoreUtils.isNullOrUndefined(telemetryItem.data.baseData.pageType)) {
-            customProperties["pageType"] = telemetryItem.data.baseData.pageType;
+        if (!CoreUtils.isNullOrUndefined(telemetryItem.baseData.pageType)) {
+            customProperties["pageType"] = telemetryItem.baseData.pageType;
         }
 
         // isLoggedIn is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
-        if (!CoreUtils.isNullOrUndefined(telemetryItem.data.baseData.isLoggedIn)) {
-            customProperties["isLoggedIn"] = telemetryItem.data.baseData.isLoggedIn;
+        if (!CoreUtils.isNullOrUndefined(telemetryItem.baseData.isLoggedIn)) {
+            customProperties["isLoggedIn"] = telemetryItem.baseData.isLoggedIn;
         }
 
         // pageTags is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
-        if (!CoreUtils.isNullOrUndefined(telemetryItem.data.baseData.pageTags)) {
-            let pageTags = telemetryItem.data.baseData.pageTags;
+        if (!CoreUtils.isNullOrUndefined(telemetryItem.baseData.pageTags)) {
+            let pageTags = telemetryItem.baseData.pageTags;
             for (let key in pageTags) {
                 if (pageTags.hasOwnProperty(key)) {
                     customProperties[key] = pageTags[key];
@@ -262,12 +275,18 @@ export class PageViewPerformanceEnvelopeCreator extends EnvelopeCreator {
     static PageViewPerformanceEnvelopeCreator = new PageViewPerformanceEnvelopeCreator();
 
     Create(telemetryItem: ITelemetryItem): IEnvelope {
+        if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
+            _InternalLogging.throwInternal(
+                LoggingSeverity.CRITICAL,
+                _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
+        }
+
         let customProperties = {};
         let customMeasurements = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-        let name = telemetryItem.data.baseData.name;
-        let url = telemetryItem.data.baseData.uri;
-        let duration = telemetryItem.data.baseData.duration;
+        let name = telemetryItem.baseData.name;
+        let url = telemetryItem.baseData.uri;
+        let duration = telemetryItem.baseData.duration;
         let baseData = new PageViewPerformance(name, url, duration, customProperties, customMeasurements);
         let data = new Data<PageViewPerformance>(PageViewPerformance.dataType, baseData);
         return EnvelopeCreator.createEnvelope<PageViewPerformance>(PageViewPerformance.envelopeType, telemetryItem, data);
@@ -278,8 +297,14 @@ export class TraceEnvelopeCreator extends EnvelopeCreator {
     static TraceEnvelopeCreator = new TraceEnvelopeCreator();
 
     Create(telemetryItem: ITelemetryItem): IEnvelope {
-        let message = telemetryItem.data.baseData.message;
-        let severityLevel = telemetryItem.data.baseData.severityLevel;
+        if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
+            _InternalLogging.throwInternal(
+                LoggingSeverity.CRITICAL,
+                _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
+        }
+
+        let message = telemetryItem.baseData.message;
+        let severityLevel = telemetryItem.baseData.severityLevel;
         let customProperties = EnvelopeCreator.extractProperties(telemetryItem.data);
         let baseData = new Trace(message, customProperties, severityLevel);
         let data = new Data<Trace>(Trace.dataType, baseData);

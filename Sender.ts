@@ -26,6 +26,7 @@ import {
 import {
     ITelemetryPlugin, ITelemetryItem, IConfiguration
 } from 'applicationinsights-core-js';
+import { CoreUtils } from 'applicationinsights-core-js';
 
 declare var XDomainRequest: {
     prototype: IXDomainRequest;
@@ -194,7 +195,9 @@ export class Sender implements IChannelControlsAI {
         }
 
         // hand off the telemetry item to the next plugin
-        this._nextPlugin.processTelemetry(telemetryItem);
+        if (!CoreUtils.isNullOrUndefined(this._nextPlugin)) {
+            this._nextPlugin.processTelemetry(telemetryItem);
+        }
     }
 
     public setNextPlugin(next: ITelemetryPlugin) {
@@ -362,7 +365,7 @@ export class Sender implements IChannelControlsAI {
     }
 
     public static _constructEnvelope(envelope: ITelemetryItem): IEnvelope {
-        switch (envelope.data.baseType) {
+        switch (envelope.baseType) {
             case Event.dataType:
                 return EventEnvelopeCreator.EventEnvelopeCreator.Create(envelope);
             case Trace.dataType:
@@ -401,7 +404,7 @@ export class Sender implements IChannelControlsAI {
 
     private static _validate(envelope: ITelemetryItem): boolean {
         // call the appropriate Validate depending on the baseType
-        switch (envelope.data.baseType) {
+        switch (envelope.baseType) {
             case Event.dataType:
                 return EventValidator.EventValidator.Validate(envelope);
             case Trace.dataType:
