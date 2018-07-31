@@ -16,8 +16,7 @@ module.exports = function (grunt) {
                 src: [
                     './TelemetryValidation/*.ts',
                     './*.ts'
-                ],
-                out: './amd/bundle/applicationinsights-channel-js.js',
+                ]
             },
             test: {
                 tsconfig: './tsconfig.json',

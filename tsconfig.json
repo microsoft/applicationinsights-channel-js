@@ -4,9 +4,12 @@
     "inlineSources": true,
     "noImplicitAny": false,
     "module": "amd",
+    "moduleResolution": "Node",
     "target": "es5",
     "alwaysStrict": true,
-    "declaration": true
+    "declaration": true,
+    "outDir": "amd/bundle",
+    "rootDir": "./"
   },
   "files": []
 }

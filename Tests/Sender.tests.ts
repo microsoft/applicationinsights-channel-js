@@ -27,14 +27,14 @@ export class SenderTests extends TestClass {
                     },
                     tags: [{}],
                     data: {
-                        baseType: "EventData",
-                        baseData: {
-                            "name": "Event Name"
-                        },
                         "property1": "val1",
                         "measurement1": 50.0,
                         "measurement2": 1.3,
                         "property2": "val2"
+                    },
+                    baseType: "EventData",
+                    baseData: {
+                        "name": "Event Name"
                     }
                 };
                 let appInsightsEnvelope = Sender._constructEnvelope(inputEnvelope);

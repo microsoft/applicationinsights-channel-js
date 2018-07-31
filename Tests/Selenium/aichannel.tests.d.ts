@@ -324,11 +324,6 @@ declare module "EnvelopeCreator" {
     export const ContextTagKeys: string[];
     export abstract class EnvelopeCreator {
         abstract Create(telemetryItem: ITelemetryItem): IEnvelope;
-        protected static extractMeasurements(properties: {
-            [key: string]: any;
-        }): {
-            [key: string]: any;
-        };
         protected static extractProperties(data: {
             [key: string]: any;
         }): {
