@@ -1,5 +1,6 @@
 /// <reference path="./TestFramework/Common.ts" />
 import { Sender } from "../Sender";
+import { ITelemetryItem } from "applicationinsights-core-js";
 
 export class SenderTests extends TestClass {
     public testInitialize() {
@@ -14,21 +15,22 @@ export class SenderTests extends TestClass {
             name: "AppInsightsTests: AppInsights Envelope created for Custom Event",
             test: () => {
                 let sender = new Sender();
-                let inputEnvelope = {
+                let inputEnvelope: ITelemetryItem = {
                     name: "test",
                     timestamp: new Date("2018-06-12"),
-                    baseType: "EventData",
                     instrumentationKey: "iKey",
-                    sytemProperties: {
+                    ctx: {
                         "ai.session.id": "d041d2e5fa834b4f9eee41ac163bf402",
                         "ai.device.id": "browser",
                         "ai.device.type": "Browser",
                         "ai.internal.sdkVersion": "javascript:1.0.18",
                     },
-                    domainProperties: {
-                        "name": "Event Name"
-                    },
-                    customProperties: {
+                    tags: [{}],
+                    data: {
+                        baseType: "EventData",
+                        baseData: {
+                            "name": "Event Name"
+                        },
                         "property1": "val1",
                         "measurement1": 50.0,
                         "measurement2": 1.3,
