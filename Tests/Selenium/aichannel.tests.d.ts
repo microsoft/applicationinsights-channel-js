@@ -1,7 +1,5 @@
 /// <reference path="../External/qunit.d.ts" />
 /// <reference path="../External/sinon.d.ts" />
-/// <reference types="applicationinsights-core-js" />
-/// <reference types="applicationinsights-common" />
 /** Wrapper around QUnit asserts. This class has two purposes:
  * - Make Assertion methods easy to discover.
  * - Make them consistent with XUnit assertions in the order of the actual and expected parameter values.
