@@ -19,9 +19,10 @@ module.exports = function (grunt) {
                 ]
             },
             test: {
-                tsconfig: './tsconfig.json',
+                tsconfig: './Tests/tsconfig.json',
                 src: [
-                    './Tests/Selenium/*.ts'
+                    './Tests/Selenium/*.ts',
+                    './Tests/*.ts',
                 ],
                 out: 'Tests/Selenium/aichannel.tests.js'
             }
