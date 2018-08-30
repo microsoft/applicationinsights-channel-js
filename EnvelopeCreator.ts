@@ -233,12 +233,19 @@ export class PageViewEnvelopeCreator extends EnvelopeCreator {
                 _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
         }
 
+        // Since duration is not part of the domain properties in Common Schema, extract it from part C 
+        let duration = undefined;
+        if (!CoreUtils.isNullOrUndefined(telemetryItem.data) &&
+            !CoreUtils.isNullOrUndefined(telemetryItem.data.duration)) {
+            duration = telemetryItem.data.duration;
+            delete telemetryItem.data.duration;
+        }
+
         let customProperties = {};
         let customMeasurements = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
         let name = telemetryItem.baseData.name;
         let url = telemetryItem.baseData.uri;
-        let duration = telemetryItem.baseData.duration;
 
         // refUri is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
         if (!CoreUtils.isNullOrUndefined(telemetryItem.baseData.refUri)) {
