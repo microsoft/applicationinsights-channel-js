@@ -2,10 +2,12 @@
 import {
     IEnvelope, Data, Envelope,
     RemoteDependencyData, Event, Exception,
-    Metric, PageView, Trace, PageViewPerformance, _InternalLogging,
-    LoggingSeverity, _InternalMessageId
+    Metric, PageView, Trace, PageViewPerformance
 } from 'applicationinsights-common';
-import { ITelemetryItem, CoreUtils } from 'applicationinsights-core-js';
+import { 
+    ITelemetryItem, CoreUtils,
+    IDiagnosticLogger, LoggingSeverity, _InternalMessageId
+} from 'applicationinsights-core-js';
 
 export const ContextTagKeys: string[] = [
     "ai.application.ver",
@@ -70,7 +72,9 @@ const baseType: string = "baseType";
 const baseData: string = "baseData";
 
 export abstract class EnvelopeCreator {
-    abstract Create(telemetryItem: ITelemetryItem): IEnvelope;
+    protected _logger: IDiagnosticLogger;
+
+    abstract Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope;
 
     protected static extractProperties(data: { [key: string]: any }): { [key: string]: any } {
         let customProperties: { [key: string]: any } = null;
@@ -137,9 +141,10 @@ export abstract class EnvelopeCreator {
 export class DependencyEnvelopeCreator extends EnvelopeCreator {
     static DependencyEnvelopeCreator = new DependencyEnvelopeCreator();
 
-    Create(telemetryItem: ITelemetryItem): IEnvelope {
+    Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope {
+        this._logger = logger;
         if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.CRITICAL,
                 _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
         }
@@ -163,9 +168,10 @@ export class DependencyEnvelopeCreator extends EnvelopeCreator {
 export class EventEnvelopeCreator extends EnvelopeCreator {
     static EventEnvelopeCreator = new EventEnvelopeCreator();
 
-    Create(telemetryItem: ITelemetryItem): IEnvelope {
+    Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope {
+        this._logger = logger;
         if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.CRITICAL,
                 _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
         }
@@ -183,9 +189,10 @@ export class EventEnvelopeCreator extends EnvelopeCreator {
 export class ExceptionEnvelopeCreator extends EnvelopeCreator {
     static ExceptionEnvelopeCreator = new ExceptionEnvelopeCreator();
 
-    Create(telemetryItem: ITelemetryItem): IEnvelope {
+    Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope {
+        this._logger = logger;
         if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.CRITICAL,
                 _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
         }
@@ -204,9 +211,10 @@ export class ExceptionEnvelopeCreator extends EnvelopeCreator {
 export class MetricEnvelopeCreator extends EnvelopeCreator {
     static MetricEnvelopeCreator = new MetricEnvelopeCreator();
 
-    Create(telemetryItem: ITelemetryItem): IEnvelope {
+    Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope {
+        this._logger = logger;
         if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.CRITICAL,
                 _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
         }
@@ -226,9 +234,10 @@ export class MetricEnvelopeCreator extends EnvelopeCreator {
 export class PageViewEnvelopeCreator extends EnvelopeCreator {
     static PageViewEnvelopeCreator = new PageViewEnvelopeCreator();
 
-    Create(telemetryItem: ITelemetryItem): IEnvelope {
+    Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope {
+        this._logger = logger;
         if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.CRITICAL,
                 _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
         }
@@ -281,9 +290,10 @@ export class PageViewEnvelopeCreator extends EnvelopeCreator {
 export class PageViewPerformanceEnvelopeCreator extends EnvelopeCreator {
     static PageViewPerformanceEnvelopeCreator = new PageViewPerformanceEnvelopeCreator();
 
-    Create(telemetryItem: ITelemetryItem): IEnvelope {
+    Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope {
+        this._logger = logger;
         if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.CRITICAL,
                 _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
         }
@@ -303,9 +313,10 @@ export class PageViewPerformanceEnvelopeCreator extends EnvelopeCreator {
 export class TraceEnvelopeCreator extends EnvelopeCreator {
     static TraceEnvelopeCreator = new TraceEnvelopeCreator();
 
-    Create(telemetryItem: ITelemetryItem): IEnvelope {
+    Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope {
+        this._logger = logger;
         if (CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.CRITICAL,
                 _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
         }
