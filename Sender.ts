@@ -17,14 +17,14 @@ import { RemoteDepdencyValidator } from './TelemetryValidation/RemoteDepdencyVal
 import { Serializer } from './Serializer'; // todo move to channel
 import {
     DisabledPropertyName, RequestHeaders, Util,
-    _InternalMessageId, LoggingSeverity, _InternalLogging,
     IEnvelope, PageView, Event,
     Trace, Exception, Metric,
     PageViewPerformance, RemoteDependencyData,
     IChannelControlsAI
 } from 'applicationinsights-common';
 import {
-    ITelemetryPlugin, ITelemetryItem, IConfiguration
+    ITelemetryPlugin, ITelemetryItem, IConfiguration,
+    _InternalMessageId, LoggingSeverity, IDiagnosticLogger,
 } from 'applicationinsights-core-js';
 import { CoreUtils } from 'applicationinsights-core-js';
 
@@ -50,7 +50,7 @@ export class Sender implements IChannelControlsAI {
         try {
             this.triggerSend();
         } catch (e) {
-            _InternalLogging.throwInternal(LoggingSeverity.CRITICAL,
+            this._logger.throwInternal(LoggingSeverity.CRITICAL,
                 _InternalMessageId.FlushFailed,
                 "flush failed, telemetry will not be collected: " + Util.getExceptionName(e),
                 { exception: Util.dump(e) });
@@ -108,6 +108,14 @@ export class Sender implements IChannelControlsAI {
 
     private _nextPlugin: ITelemetryPlugin;
 
+    private _logger: IDiagnosticLogger;
+    private _serializer: Serializer;
+
+    constructor(logger: IDiagnosticLogger) {
+        this._logger = logger;
+        this._serializer = new Serializer(logger);
+    }
+
     public initialize(config: IConfiguration) {
         this.identifier = "AppInsightsChannelPlugin";
         this._consecutiveErrors = 0;
@@ -116,7 +124,7 @@ export class Sender implements IChannelControlsAI {
         this._config = Sender._getDefaultAppInsightsChannelConfig(config, this.identifier);
         this._sender = null;
         this._buffer = (Util.canUseSessionStorage() && this._config.enableSessionStorageBuffer)
-            ? new SessionStorageSendBuffer(this._config) : new ArraySendBuffer(this._config);
+            ? new SessionStorageSendBuffer(this._logger, this._config) : new ArraySendBuffer(this._config);
 
         if (!this._config.isBeaconApiDisabled() && Util.IsBeaconApiSupported()) {
             this._sender = this._beaconSender;
@@ -143,32 +151,32 @@ export class Sender implements IChannelControlsAI {
 
             // validate input
             if (!telemetryItem) {
-                _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CannotSendEmptyTelemetry, "Cannot send empty telemetry");
+                this._logger.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CannotSendEmptyTelemetry, "Cannot send empty telemetry");
                 return;
             }
 
             // ensure a sender was constructed
             if (!this._sender) {
-                _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.SenderNotInitialized, "Sender was not initialized");
+                this._logger.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.SenderNotInitialized, "Sender was not initialized");
                 return;
             }
 
             // first we need to validate that the envelope passed down is valid
             let isValid: boolean = Sender._validate(telemetryItem);
             if (!isValid) {
-                _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.TelemetryEnvelopeInvalid, "Invalid telemetry envelope");
+                this._logger.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.TelemetryEnvelopeInvalid, "Invalid telemetry envelope");
                 return;
             }
 
             // construct an envelope that Application Insights endpoint can understand
-            let aiEnvelope = Sender._constructEnvelope(telemetryItem);
+            let aiEnvelope = this._constructEnvelope(telemetryItem);
             if (!aiEnvelope) {
-                _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CreateEnvelopeError, "Unable to create an AppInsights envelope");
+                this._logger.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CreateEnvelopeError, "Unable to create an AppInsights envelope");
                 return;
             }
 
             // check if the incoming payload is too large, truncate if necessary
-            let payload: string = Serializer.serialize(aiEnvelope);
+            let payload: string = this._serializer.serialize(aiEnvelope);
 
             // flush if we would exceed the max-size limit by adding this item
             var bufferPayload = this._buffer.getItems();
@@ -187,7 +195,7 @@ export class Sender implements IChannelControlsAI {
             // Uncomment if you want to use DataLossanalyzer
             // DataLossAnalyzer.incrementItemsQueued();
         } catch (e) {
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.WARNING,
                 _InternalMessageId.FailedAddingTelemetryToBuffer,
                 "Failed adding telemetry to the sender's buffer, some telemetry will be lost: " + Util.getExceptionName(e),
@@ -221,7 +229,7 @@ export class Sender implements IChannelControlsAI {
                 if (!this._config.isRetryDisabled() && this._isRetriable(xhr.status)) {
                     this._resendPayload(payload);
 
-                    _InternalLogging.throwInternal(
+                    this._logger.throwInternal(
                         LoggingSeverity.WARNING,
                         _InternalMessageId.TransmissionFailed, ". " +
                         "Response code " + xhr.status + ". Will retry to send " + payload.length + " items.");
@@ -275,7 +283,7 @@ export class Sender implements IChannelControlsAI {
         } catch (e) {
             /* Ignore this error for IE under v10 */
             if (!Util.getIEVersion() || Util.getIEVersion() > 9) {
-                _InternalLogging.throwInternal(
+                this._logger.throwInternal(
                     LoggingSeverity.CRITICAL,
                     _InternalMessageId.TransmissionFailed,
                     "Telemetry transmission failed, some telemetry will be lost: " + Util.getExceptionName(e),
@@ -288,7 +296,7 @@ export class Sender implements IChannelControlsAI {
      * error handler
      */
     public _onError(payload: string[], message: string, event?: ErrorEvent) {
-        _InternalLogging.throwInternal(
+        this._logger.throwInternal(
             LoggingSeverity.WARNING,
             _InternalMessageId.OnError,
             "Failed to send telemetry.",
@@ -327,7 +335,7 @@ export class Sender implements IChannelControlsAI {
         if (retry.length > 0) {
             this._resendPayload(retry);
 
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.WARNING,
                 _InternalMessageId.TransmissionFailed, "Partial success. " +
                 "Delivered: " + payload.length + ", Failed: " + failed.length +
@@ -364,22 +372,22 @@ export class Sender implements IChannelControlsAI {
         }
     }
 
-    public static _constructEnvelope(envelope: ITelemetryItem): IEnvelope {
+    public _constructEnvelope(envelope: ITelemetryItem): IEnvelope {
         switch (envelope.baseType) {
             case Event.dataType:
-                return EventEnvelopeCreator.EventEnvelopeCreator.Create(envelope);
+                return EventEnvelopeCreator.EventEnvelopeCreator.Create(this._logger, envelope);
             case Trace.dataType:
-                return TraceEnvelopeCreator.TraceEnvelopeCreator.Create(envelope);
+                return TraceEnvelopeCreator.TraceEnvelopeCreator.Create(this._logger, envelope);
             case PageView.dataType:
-                return PageViewEnvelopeCreator.PageViewEnvelopeCreator.Create(envelope);
+                return PageViewEnvelopeCreator.PageViewEnvelopeCreator.Create(this._logger, envelope);
             case PageViewPerformance.dataType:
-                return PageViewPerformanceEnvelopeCreator.PageViewPerformanceEnvelopeCreator.Create(envelope);
+                return PageViewPerformanceEnvelopeCreator.PageViewPerformanceEnvelopeCreator.Create(this._logger, envelope);
             case Exception.dataType:
-                return ExceptionEnvelopeCreator.ExceptionEnvelopeCreator.Create(envelope);
+                return ExceptionEnvelopeCreator.ExceptionEnvelopeCreator.Create(this._logger, envelope);
             case Metric.dataType:
-                return MetricEnvelopeCreator.MetricEnvelopeCreator.Create(envelope);
+                return MetricEnvelopeCreator.MetricEnvelopeCreator.Create(this._logger, envelope);
             case RemoteDependencyData.dataType:
-                return DependencyEnvelopeCreator.DependencyEnvelopeCreator.Create(envelope);
+                return DependencyEnvelopeCreator.DependencyEnvelopeCreator.Create(this._logger, envelope);
             default:
                 return null;
         }
@@ -444,7 +452,7 @@ export class Sender implements IChannelControlsAI {
         if (queued) {
             this._buffer.markAsSent(payload);
         } else {
-            _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.TransmissionFailed, ". " + "Failed to send telemetry with Beacon API.");
+            this._logger.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.TransmissionFailed, ". " + "Failed to send telemetry with Beacon API.");
         }
     }
 
@@ -489,7 +497,7 @@ export class Sender implements IChannelControlsAI {
                 }
             }
         } catch (e) {
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.CRITICAL,
                 _InternalMessageId.InvalidBackendResponse,
                 "Cannot parse the response. " + Util.getExceptionName(e),
@@ -596,7 +604,7 @@ export class Sender implements IChannelControlsAI {
         // If the protocol doesn't match, we can't send the telemetry :(. 
         var hostingProtocol = window.location.protocol
         if (this._config.endpointUrl().lastIndexOf(hostingProtocol, 0) !== 0) {
-            _InternalLogging.throwInternal(
+            this._logger.throwInternal(
                 LoggingSeverity.WARNING,
                 _InternalMessageId.TransmissionFailed, ". " +
                 "Cannot send XDomain request. The endpoint URL protocol doesn't match the hosting page protocol.");
