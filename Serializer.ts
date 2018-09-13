@@ -1,41 +1,48 @@
-﻿import { LoggingSeverity, _InternalMessageId, _InternalLogging, Util, ISerializable, FieldType } from 'applicationinsights-common';
+﻿import { Util, ISerializable, FieldType } from 'applicationinsights-common';
+import { IDiagnosticLogger, LoggingSeverity, _InternalMessageId } from 'applicationinsights-core-js';
 
 export class Serializer {
+
+    private _logger: IDiagnosticLogger;
+
+    constructor(logger: IDiagnosticLogger) {
+        this._logger = logger;
+    }
 
     /**
      * Serializes the current object to a JSON string.
      */
-    public static serialize(input: ISerializable): string {
-        var output = Serializer._serializeObject(input, "root");
+    public serialize(input: ISerializable): string {
+        var output = this._serializeObject(input, "root");
         return JSON.stringify(output);
     }
 
-    private static _serializeObject(source: ISerializable, name: string): any {
+    private _serializeObject(source: ISerializable, name: string): any {
         var circularReferenceCheck = "__aiCircularRefCheck";
         var output = {};
 
         if (!source) {
-            _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CannotSerializeObject, "cannot serialize object because it is null or undefined", { name: name }, true);
+            this._logger.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CannotSerializeObject, "cannot serialize object because it is null or undefined", { name: name }, true);
             return output;
         }
 
         if (source[circularReferenceCheck]) {
-            _InternalLogging.throwInternal(LoggingSeverity.WARNING, _InternalMessageId.CircularReferenceDetected, "Circular reference detected while serializing object", { name: name }, true);
+            this._logger.throwInternal(LoggingSeverity.WARNING, _InternalMessageId.CircularReferenceDetected, "Circular reference detected while serializing object", { name: name }, true);
             return output;
         }
 
         if (!source.aiDataContract) {
             // special case for measurements/properties/tags
             if (name === "measurements") {
-                output = Serializer._serializeStringMap(source, "number", name);
+                output = this._serializeStringMap(source, "number", name);
             } else if (name === "properties") {
-                output = Serializer._serializeStringMap(source, "string", name);
+                output = this._serializeStringMap(source, "string", name);
             } else if (name === "tags") {
-                output = Serializer._serializeStringMap(source, "string", name);
+                output = this._serializeStringMap(source, "string", name);
             } else if (Util.isArray(source)) {
-                output = Serializer._serializeArray(<any>source, name);
+                output = this._serializeArray(<any>source, name);
             } else {
-                _InternalLogging.throwInternal(LoggingSeverity.WARNING, _InternalMessageId.CannotSerializeObjectNonSerializable, "Attempting to serialize an object which does not implement ISerializable", { name: name }, true);
+                this._logger.throwInternal(LoggingSeverity.WARNING, _InternalMessageId.CannotSerializeObjectNonSerializable, "Attempting to serialize an object which does not implement ISerializable", { name: name }, true);
 
                 try {
                     // verify that the object can be stringified
@@ -43,7 +50,7 @@ export class Serializer {
                     output = source;
                 } catch (e) {
                     // if serialization fails return an empty string
-                    _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CannotSerializeObject, (e && typeof e.toString === 'function') ? e.toString() : "Error serializing object", null, true);
+                    this._logger.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CannotSerializeObject, (e && typeof e.toString === 'function') ? e.toString() : "Error serializing object", null, true);
                 }
             }
 
@@ -62,7 +69,7 @@ export class Serializer {
             var isObject = typeof source[field] === "object" && source[field] !== null;
 
             if (isRequired && !isPresent && !isArray) {
-                _InternalLogging.throwInternal(
+                this._logger.throwInternal(
                     LoggingSeverity.CRITICAL,
                     _InternalMessageId.MissingRequiredFieldSpecification,
                     "Missing required field specification. The field is required but not present on source",
@@ -81,10 +88,10 @@ export class Serializer {
             if (isObject) {
                 if (isArray) {
                     // special case; resurse on each object in the source array
-                    value = Serializer._serializeArray(source[field], field);
+                    value = this._serializeArray(source[field], field);
                 } else {
                     // recurse on the source object in this field
-                    value = Serializer._serializeObject(source[field], field);
+                    value = this._serializeObject(source[field], field);
                 }
             } else {
                 // assign the source field to the output even if undefined or required
@@ -101,12 +108,12 @@ export class Serializer {
         return output;
     }
 
-    private static _serializeArray(sources: Array<ISerializable>, name: string): Array<any> {
+    private _serializeArray(sources: Array<ISerializable>, name: string): Array<any> {
         var output = undefined;
 
         if (!!sources) {
             if (!Util.isArray(sources)) {
-                _InternalLogging.throwInternal(
+                this._logger.throwInternal(
                     LoggingSeverity.CRITICAL,
                     _InternalMessageId.ItemNotInArray,
                     "This field was specified as an array in the contract but the item is not an array.\r\n",
@@ -115,7 +122,7 @@ export class Serializer {
                 output = [];
                 for (var i = 0; i < sources.length; i++) {
                     var source = sources[i];
-                    var item = Serializer._serializeObject(source, name + "[" + i + "]");
+                    var item = this._serializeObject(source, name + "[" + i + "]");
                     output.push(item);
                 }
             }
@@ -124,7 +131,7 @@ export class Serializer {
         return output;
     }
 
-    private static _serializeStringMap(map, expectedType, name) {
+    private _serializeStringMap(map, expectedType, name) {
         var output = undefined;
         if (map) {
             output = {};
@@ -159,7 +166,7 @@ export class Serializer {
                 }
                 else {
                     output[field] = "invalid field: " + name + " is of unknown type.";
-                    _InternalLogging.throwInternal(LoggingSeverity.CRITICAL, output[field], null, true);
+                    this._logger.throwInternal(LoggingSeverity.CRITICAL, output[field], null, true);
                 }
             }
         }

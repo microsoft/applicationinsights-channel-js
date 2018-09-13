@@ -1,9 +1,13 @@
 /// <reference path="./TestFramework/Common.ts" />
 import { Sender } from "../Sender";
-import { ITelemetryItem } from "applicationinsights-core-js";
+import { ITelemetryItem, DiagnosticLogger } from "applicationinsights-core-js";
 
 export class SenderTests extends TestClass {
+    private _sender: Sender;
+
     public testInitialize() {
+        let logger = new DiagnosticLogger({instrumentationKey: ""});
+        this._sender = new Sender(logger);
     }
 
     public testCleanup() {
@@ -36,7 +40,7 @@ export class SenderTests extends TestClass {
                         "name": "Event Name"
                     }
                 };
-                let appInsightsEnvelope = Sender._constructEnvelope(inputEnvelope);
+                let appInsightsEnvelope = this._sender._constructEnvelope(inputEnvelope);
 
                 let baseData = appInsightsEnvelope.data.baseData;
 
@@ -115,7 +119,7 @@ export class SenderTests extends TestClass {
                 };
 
                 // Act
-                let appInsightsEnvelope = Sender._constructEnvelope(inputEnvelope);
+                let appInsightsEnvelope = this._sender._constructEnvelope(inputEnvelope);
                 let baseData = appInsightsEnvelope.data.baseData;
 
                 // Assert duration

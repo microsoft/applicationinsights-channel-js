@@ -4,13 +4,6 @@ module.exports = function (grunt) {
             options: {
                 comments: true
             },
-            channelcjs: {
-                tsconfig: './cjs/tsconfigcommonjs.json',
-                src: [
-                    './TelemetryValidation/*.ts',
-                    './*.ts'
-                ]
-            },
             default: {
                 tsconfig: './tsconfig.json',
                 src: [
@@ -50,6 +43,5 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.registerTask("default", ["ts:default"]);
-    grunt.registerTask("channelcjs", ["ts:channelcjs"])
     grunt.registerTask("test", ["ts:default", "ts:test", "qunit:channel"]);
 };

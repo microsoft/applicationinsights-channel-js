@@ -1,4 +1,5 @@
-﻿import { _InternalLogging, LoggingSeverity, _InternalMessageId, Util } from 'applicationinsights-common';
+﻿import { Util } from 'applicationinsights-common';
+import { IDiagnosticLogger, LoggingSeverity, _InternalMessageId } from 'applicationinsights-core-js';
 import { ISenderConfig } from './Interfaces';
 
 export interface ISendBuffer {
@@ -105,7 +106,10 @@ export class SessionStorageSendBuffer implements ISendBuffer {
     private _buffer: string[];
     private _config: ISenderConfig;
 
-    constructor(config: ISenderConfig) {
+    private _logger: IDiagnosticLogger;
+
+    constructor(logger: IDiagnosticLogger, config: ISenderConfig) {
+        this._logger = logger;
         this._config = config;
 
         var bufferItems = this.getBuffer(SessionStorageSendBuffer.BUFFER_KEY);
@@ -130,7 +134,7 @@ export class SessionStorageSendBuffer implements ISendBuffer {
         if (this._buffer.length >= SessionStorageSendBuffer.MAX_BUFFER_SIZE) {
             // sent internal log only once per page view
             if (!this._bufferFullMessageSent) {
-                _InternalLogging.throwInternal(
+                this._logger.throwInternal(
                     LoggingSeverity.WARNING,
                     _InternalMessageId.SessionStorageBufferFull,
                     "Maximum buffer size reached: " + this._buffer.length,
@@ -183,7 +187,7 @@ export class SessionStorageSendBuffer implements ISendBuffer {
             if (sentElements.length > SessionStorageSendBuffer.MAX_BUFFER_SIZE) {
                 // We send telemetry normally. If the SENT_BUFFER is too big we don't add new elements
                 // until we receive a response from the backend and the buffer has free space again (see clearSent method)
-                _InternalLogging.throwInternal(
+                this._logger.throwInternal(
                     LoggingSeverity.CRITICAL,
                     _InternalMessageId.SessionStorageBufferFull,
                     "Sent buffer reached its maximum size: " + sentElements.length,
@@ -233,7 +237,7 @@ export class SessionStorageSendBuffer implements ISendBuffer {
                 }
             }
         } catch (e) {
-            _InternalLogging.throwInternal(LoggingSeverity.CRITICAL,
+            this._logger.throwInternal(LoggingSeverity.CRITICAL,
                 _InternalMessageId.FailedToRestoreStorageBuffer,
                 " storage key: " + key + ", " + Util.getExceptionName(e),
                 { exception: Util.dump(e) });
@@ -251,7 +255,7 @@ export class SessionStorageSendBuffer implements ISendBuffer {
             // telemetry is stored in the _buffer array so we won't loose any items
             Util.setSessionStorage(key, JSON.stringify([]));
 
-            _InternalLogging.throwInternal(LoggingSeverity.WARNING,
+            this._logger.throwInternal(LoggingSeverity.WARNING,
                 _InternalMessageId.FailedToSetStorageBuffer,
                 " storage key: " + key + ", " + Util.getExceptionName(e) + ". Buffer cleared",
                 { exception: Util.dump(e) });

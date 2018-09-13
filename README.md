@@ -17,20 +17,11 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 To build:
 npm install
 amd> grunt channel
-cjs> grunt channelcjs
 
 To run unit tests:
 grunt test
 
-To publish a new package (publish cjs first then amd)
-cjs>
-  grunt channelcjs  
-  Please ensure unit tests pass  
-  cd cjs  
-  update version in package.json (version number even for cjs)  
-  npm pack  
-  npm publish --tag cjs  
-
+To publish a new package
 amd> 
   grunt  
   Please ensure unit tests pass  

@@ -252,6 +252,7 @@ declare module "Interfaces" {
     }
 }
 declare module "SendBuffer" {
+    import { IDiagnosticLogger } from 'applicationinsights-core-js';
     import { ISenderConfig } from "Interfaces";
     export interface ISendBuffer {
         /**
@@ -303,7 +304,8 @@ declare module "SendBuffer" {
         private _bufferFullMessageSent;
         private _buffer;
         private _config;
-        constructor(config: ISenderConfig);
+        private _logger;
+        constructor(logger: IDiagnosticLogger, config: ISenderConfig);
         enqueue(payload: string): void;
         count(): number;
         clear(): void;
@@ -318,10 +320,11 @@ declare module "SendBuffer" {
 }
 declare module "EnvelopeCreator" {
     import { IEnvelope, Data } from 'applicationinsights-common';
-    import { ITelemetryItem } from 'applicationinsights-core-js';
+    import { ITelemetryItem, IDiagnosticLogger } from 'applicationinsights-core-js';
     export const ContextTagKeys: string[];
     export abstract class EnvelopeCreator {
-        abstract Create(telemetryItem: ITelemetryItem): IEnvelope;
+        protected _logger: IDiagnosticLogger;
+        abstract Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope;
         protected static extractProperties(data: {
             [key: string]: any;
         }): {
@@ -338,31 +341,31 @@ declare module "EnvelopeCreator" {
     }
     export class DependencyEnvelopeCreator extends EnvelopeCreator {
         static DependencyEnvelopeCreator: DependencyEnvelopeCreator;
-        Create(telemetryItem: ITelemetryItem): IEnvelope;
+        Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope;
     }
     export class EventEnvelopeCreator extends EnvelopeCreator {
         static EventEnvelopeCreator: EventEnvelopeCreator;
-        Create(telemetryItem: ITelemetryItem): IEnvelope;
+        Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope;
     }
     export class ExceptionEnvelopeCreator extends EnvelopeCreator {
         static ExceptionEnvelopeCreator: ExceptionEnvelopeCreator;
-        Create(telemetryItem: ITelemetryItem): IEnvelope;
+        Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope;
     }
     export class MetricEnvelopeCreator extends EnvelopeCreator {
         static MetricEnvelopeCreator: MetricEnvelopeCreator;
-        Create(telemetryItem: ITelemetryItem): IEnvelope;
+        Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope;
     }
     export class PageViewEnvelopeCreator extends EnvelopeCreator {
         static PageViewEnvelopeCreator: PageViewEnvelopeCreator;
-        Create(telemetryItem: ITelemetryItem): IEnvelope;
+        Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope;
     }
     export class PageViewPerformanceEnvelopeCreator extends EnvelopeCreator {
         static PageViewPerformanceEnvelopeCreator: PageViewPerformanceEnvelopeCreator;
-        Create(telemetryItem: ITelemetryItem): IEnvelope;
+        Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope;
     }
     export class TraceEnvelopeCreator extends EnvelopeCreator {
         static TraceEnvelopeCreator: TraceEnvelopeCreator;
-        Create(telemetryItem: ITelemetryItem): IEnvelope;
+        Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope;
     }
 }
 declare module "TelemetryValidation/ITypeValidator" {
@@ -430,21 +433,24 @@ declare module "TelemetryValidation/RemoteDepdencyValidator" {
 }
 declare module "Serializer" {
     import { ISerializable } from 'applicationinsights-common';
+    import { IDiagnosticLogger } from 'applicationinsights-core-js';
     export class Serializer {
+        private _logger;
+        constructor(logger: IDiagnosticLogger);
         /**
          * Serializes the current object to a JSON string.
          */
-        static serialize(input: ISerializable): string;
-        private static _serializeObject(source, name);
-        private static _serializeArray(sources, name);
-        private static _serializeStringMap(map, expectedType, name);
+        serialize(input: ISerializable): string;
+        private _serializeObject(source, name);
+        private _serializeArray(sources, name);
+        private _serializeStringMap(map, expectedType, name);
     }
 }
 declare module "Sender" {
     import { ISenderConfig, XDomainRequest as IXDomainRequest, IBackendResponse } from "Interfaces";
     import { ISendBuffer } from "SendBuffer";
     import { IEnvelope, IChannelControlsAI } from 'applicationinsights-common';
-    import { ITelemetryPlugin, ITelemetryItem, IConfiguration } from 'applicationinsights-core-js';
+    import { ITelemetryPlugin, ITelemetryItem, IConfiguration, IDiagnosticLogger } from 'applicationinsights-core-js';
     export class Sender implements IChannelControlsAI {
         priority: number;
         identifier: string;
@@ -489,6 +495,9 @@ declare module "Sender" {
          */
         private _timeoutHandle;
         private _nextPlugin;
+        private _logger;
+        private _serializer;
+        constructor(logger: IDiagnosticLogger);
         initialize(config: IConfiguration): void;
         processTelemetry(telemetryItem: ITelemetryItem): void;
         setNextPlugin(next: ITelemetryPlugin): void;
@@ -517,7 +526,7 @@ declare module "Sender" {
          * xdr state changes
          */
         _xdrOnLoad(xdr: IXDomainRequest, payload: string[]): void;
-        static _constructEnvelope(envelope: ITelemetryItem): IEnvelope;
+        _constructEnvelope(envelope: ITelemetryItem): IEnvelope;
         private static _getDefaultAppInsightsChannelConfig(config, identifier);
         private static _validate(envelope);
         /**
@@ -574,6 +583,7 @@ declare module "Sender" {
 }
 declare module "Tests/Sender.tests" {
     export class SenderTests extends TestClass {
+        private _sender;
         testInitialize(): void;
         testCleanup(): void;
         registerTests(): void;
