@@ -1,5 +1,3 @@
-///<reference types="applicationinsights-common" />
-///<reference types="applicationinsights-core-js" />
 import { ISenderConfig, XDomainRequest as IXDomainRequest, IBackendResponse } from './Interfaces';
 import { ISendBuffer, SessionStorageSendBuffer, ArraySendBuffer } from './SendBuffer';
 import {
