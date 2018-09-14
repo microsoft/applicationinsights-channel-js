@@ -108,8 +108,9 @@ export abstract class EnvelopeCreator {
         }
     }
 
-    protected static createEnvelope<T>(envelopeType: string, telemetryItem: ITelemetryItem, data: Data<T>): IEnvelope {
-        let envelope = new Envelope(data, envelopeType);
+    // TODO: Do we want this to take logger as arg or use this._logger as nonstatic?
+    protected static createEnvelope<T>(logger: IDiagnosticLogger, envelopeType: string, telemetryItem: ITelemetryItem, data: Data<T>): IEnvelope {
+        let envelope = new Envelope(logger, data, envelopeType);
         envelope.iKey = telemetryItem.instrumentationKey;
         let iKeyNoDashes = telemetryItem.instrumentationKey.replace(/-/g, "");
         envelope.name = envelope.name.replace("{0}", iKeyNoDashes);
@@ -159,9 +160,9 @@ export class DependencyEnvelopeCreator extends EnvelopeCreator {
         let success = telemetryItem.baseData.success;
         let resultCode = telemetryItem.baseData.resultCode;
         let method = telemetryItem.baseData.method;
-        let baseData = new RemoteDependencyData(id, absoluteUrl, command, totalTime, success, resultCode, method, customProperties, customMeasurements);
+        let baseData = new RemoteDependencyData(logger, id, absoluteUrl, command, totalTime, success, resultCode, method, customProperties, customMeasurements);
         let data = new Data<RemoteDependencyData>(RemoteDependencyData.dataType, baseData);
-        return EnvelopeCreator.createEnvelope<RemoteDependencyData>(RemoteDependencyData.envelopeType, telemetryItem, data);
+        return EnvelopeCreator.createEnvelope<RemoteDependencyData>(logger, RemoteDependencyData.envelopeType, telemetryItem, data);
     }
 }
 
@@ -180,9 +181,9 @@ export class EventEnvelopeCreator extends EnvelopeCreator {
         let customMeasurements = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
         let eventName = telemetryItem.baseData.name;
-        let baseData = new Event(eventName, customProperties, customMeasurements);
+        let baseData = new Event(logger, eventName, customProperties, customMeasurements);
         let data = new Data<Event>(Event.dataType, baseData);
-        return EnvelopeCreator.createEnvelope<Event>(Event.envelopeType, telemetryItem, data);
+        return EnvelopeCreator.createEnvelope<Event>(logger, Event.envelopeType, telemetryItem, data);
     }
 }
 
@@ -202,9 +203,9 @@ export class ExceptionEnvelopeCreator extends EnvelopeCreator {
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
         let exception = telemetryItem.baseData.exception;
         let severityLevel = telemetryItem.baseData.severityLevel;
-        let baseData = new Exception(exception, customProperties, customMeasurements, severityLevel);
+        let baseData = new Exception(logger, exception, customProperties, customMeasurements, severityLevel);
         let data = new Data<Exception>(Exception.dataType, baseData);
-        return EnvelopeCreator.createEnvelope<Exception>(Exception.envelopeType, telemetryItem, data);
+        return EnvelopeCreator.createEnvelope<Exception>(logger, Exception.envelopeType, telemetryItem, data);
     }
 }
 
@@ -225,9 +226,9 @@ export class MetricEnvelopeCreator extends EnvelopeCreator {
         let sampleCount = telemetryItem.baseData.sampleCount;
         let min = telemetryItem.baseData.min;
         let max = telemetryItem.baseData.max;
-        let baseData = new Metric(name, average, sampleCount, min, max, customProperties);
+        let baseData = new Metric(logger, name, average, sampleCount, min, max, customProperties);
         let data = new Data<Metric>(Metric.dataType, baseData);
-        return EnvelopeCreator.createEnvelope<Metric>(Metric.envelopeType, telemetryItem, data);
+        return EnvelopeCreator.createEnvelope<Metric>(logger, Metric.envelopeType, telemetryItem, data);
     }
 }
 
@@ -281,9 +282,9 @@ export class PageViewEnvelopeCreator extends EnvelopeCreator {
             }
         }
 
-        let baseData = new PageView(name, url, duration, customProperties, customMeasurements);
+        let baseData = new PageView(logger, name, url, duration, customProperties, customMeasurements);
         let data = new Data<PageView>(PageView.dataType, baseData);
-        return EnvelopeCreator.createEnvelope<PageView>(PageView.envelopeType, telemetryItem, data);
+        return EnvelopeCreator.createEnvelope<PageView>(logger, PageView.envelopeType, telemetryItem, data);
     }
 }
 
@@ -304,9 +305,9 @@ export class PageViewPerformanceEnvelopeCreator extends EnvelopeCreator {
         let name = telemetryItem.baseData.name;
         let url = telemetryItem.baseData.uri;
         let duration = telemetryItem.baseData.duration;
-        let baseData = new PageViewPerformance(name, url, duration, customProperties, customMeasurements);
+        let baseData = new PageViewPerformance(logger, name, url, duration, customProperties, customMeasurements);
         let data = new Data<PageViewPerformance>(PageViewPerformance.dataType, baseData);
-        return EnvelopeCreator.createEnvelope<PageViewPerformance>(PageViewPerformance.envelopeType, telemetryItem, data);
+        return EnvelopeCreator.createEnvelope<PageViewPerformance>(logger, PageViewPerformance.envelopeType, telemetryItem, data);
     }
 }
 
@@ -324,8 +325,8 @@ export class TraceEnvelopeCreator extends EnvelopeCreator {
         let message = telemetryItem.baseData.message;
         let severityLevel = telemetryItem.baseData.severityLevel;
         let customProperties = EnvelopeCreator.extractProperties(telemetryItem.data);
-        let baseData = new Trace(message, customProperties, severityLevel);
+        let baseData = new Trace(logger, message, customProperties, severityLevel);
         let data = new Data<Trace>(Trace.dataType, baseData);
-        return EnvelopeCreator.createEnvelope<Trace>(Trace.envelopeType, telemetryItem, data);
+        return EnvelopeCreator.createEnvelope<Trace>(logger, Trace.envelopeType, telemetryItem, data);
     }
 }

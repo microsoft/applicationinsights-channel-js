@@ -229,7 +229,7 @@ export class SessionStorageSendBuffer implements ISendBuffer {
 
     private getBuffer(key: string): string[] {
         try {
-            var bufferJson = Util.getSessionStorage(key);
+            var bufferJson = Util.getSessionStorage(this._logger, key);
             if (bufferJson) {
                 var buffer: string[] = JSON.parse(bufferJson);
                 if (buffer) {
@@ -249,11 +249,11 @@ export class SessionStorageSendBuffer implements ISendBuffer {
     private setBuffer(key: string, buffer: string[]) {
         try {
             var bufferJson = JSON.stringify(buffer);
-            Util.setSessionStorage(key, bufferJson);
+            Util.setSessionStorage(this._logger, key, bufferJson);
         } catch (e) {
             // if there was an error, clear the buffer
             // telemetry is stored in the _buffer array so we won't loose any items
-            Util.setSessionStorage(key, JSON.stringify([]));
+            Util.setSessionStorage(this._logger, key, JSON.stringify([]));
 
             this._logger.throwInternal(LoggingSeverity.WARNING,
                 _InternalMessageId.FailedToSetStorageBuffer,
