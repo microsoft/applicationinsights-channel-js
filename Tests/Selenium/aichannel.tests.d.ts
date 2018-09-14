@@ -337,7 +337,7 @@ declare module "EnvelopeCreator" {
         }, measurements: {
             [key: string]: any;
         }): void;
-        protected static createEnvelope<T>(envelopeType: string, telemetryItem: ITelemetryItem, data: Data<T>): IEnvelope;
+        protected static createEnvelope<T>(logger: IDiagnosticLogger, envelopeType: string, telemetryItem: ITelemetryItem, data: Data<T>): IEnvelope;
     }
     export class DependencyEnvelopeCreator extends EnvelopeCreator {
         static DependencyEnvelopeCreator: DependencyEnvelopeCreator;
