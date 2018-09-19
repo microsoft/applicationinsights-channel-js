@@ -11,6 +11,13 @@ module.exports = function (grunt) {
                     './*.ts'
                 ]
             },
+            umd: {
+                tsconfig: './tsconfigumd.json',
+                src: [
+                    './TelemetryValidation/*.ts',
+                    './*.ts'
+                ]
+            },
             test: {
                 tsconfig: './Tests/tsconfig.json',
                 src: [
@@ -43,5 +50,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.registerTask("default", ["ts:default"]);
+    grunt.registerTask("umd", ["ts:umd"]);
     grunt.registerTask("test", ["ts:default", "ts:test", "qunit:channel"]);
 };

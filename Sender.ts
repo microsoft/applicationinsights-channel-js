@@ -1,5 +1,3 @@
-///<reference types="applicationinsights-common" />
-///<reference types="applicationinsights-core-js" />
 import { ISenderConfig, XDomainRequest as IXDomainRequest, IBackendResponse } from './Interfaces';
 import { ISendBuffer, SessionStorageSendBuffer, ArraySendBuffer } from './SendBuffer';
 import {
@@ -34,7 +32,7 @@ declare var XDomainRequest: {
 };
 
 export class Sender implements IChannelControlsAI {
-    public priority: number = 200;
+    public priority: number = 201;
 
     public identifier: string;
 
