@@ -450,7 +450,7 @@ declare module "Sender" {
     import { ISenderConfig, XDomainRequest as IXDomainRequest, IBackendResponse } from "Interfaces";
     import { ISendBuffer } from "SendBuffer";
     import { IEnvelope, IChannelControlsAI } from 'applicationinsights-common';
-    import { ITelemetryPlugin, ITelemetryItem, IConfiguration, IDiagnosticLogger } from 'applicationinsights-core-js';
+    import { ITelemetryPlugin, ITelemetryItem, IConfiguration, IAppInsightsCore, IPlugin } from 'applicationinsights-core-js';
     export class Sender implements IChannelControlsAI {
         priority: number;
         identifier: string;
@@ -497,8 +497,8 @@ declare module "Sender" {
         private _nextPlugin;
         private _logger;
         private _serializer;
-        constructor(logger: IDiagnosticLogger);
-        initialize(config: IConfiguration): void;
+        constructor();
+        initialize(config: IConfiguration, core: IAppInsightsCore, extensions: IPlugin[]): void;
         processTelemetry(telemetryItem: ITelemetryItem): void;
         setNextPlugin(next: ITelemetryPlugin): void;
         /**
