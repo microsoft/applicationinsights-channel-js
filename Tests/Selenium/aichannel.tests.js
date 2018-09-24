@@ -1508,7 +1508,7 @@ define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "Teleme
         };
         Sender._getDefaultAppInsightsChannelConfig = function (config, identifier) {
             var resultConfig = {};
-            var pluginConfig = config.extensions && config.extensions[identifier] ? config.extensions[identifier] : {};
+            var pluginConfig = config.extensionConfig && config.extensionConfig[identifier] ? config.extensionConfig[identifier] : {};
             // set default values
             resultConfig.endpointUrl = function () { return config.endpointUrl || "https://dc.services.visualstudio.com/v2/track"; };
             resultConfig.emitLineDelimitedJson = function () { return applicationinsights_common_4.Util.stringToBoolOrDefault(pluginConfig.emitLineDelimitedJson); };
