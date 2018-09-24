@@ -22,7 +22,7 @@ import {
 } from 'applicationinsights-common';
 import {
     ITelemetryPlugin, ITelemetryItem, IConfiguration,
-    _InternalMessageId, LoggingSeverity, IDiagnosticLogger,
+    _InternalMessageId, LoggingSeverity, IDiagnosticLogger, IAppInsightsCore, IPlugin,
 } from 'applicationinsights-core-js';
 import { CoreUtils } from 'applicationinsights-core-js';
 
@@ -109,13 +109,14 @@ export class Sender implements IChannelControlsAI {
     private _logger: IDiagnosticLogger;
     private _serializer: Serializer;
 
-    constructor(logger: IDiagnosticLogger) {
-        this._logger = logger;
-        this._serializer = new Serializer(logger);
+    constructor() {
     }
 
-    public initialize(config: IConfiguration) {
+    public initialize(config: IConfiguration, core: IAppInsightsCore, extensions: IPlugin[]) :void {
         this.identifier = "AppInsightsChannelPlugin";
+        this._logger = core.logger;
+        this._serializer = new Serializer(core.logger);
+
         this._consecutiveErrors = 0;
         this._retryAt = null;
         this._lastSend = 0;

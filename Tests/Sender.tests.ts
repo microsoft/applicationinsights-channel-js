@@ -7,7 +7,7 @@ export class SenderTests extends TestClass {
 
     public testInitialize() {
         let logger = new DiagnosticLogger({instrumentationKey: ""});
-        this._sender = new Sender(logger);
+        this._sender = new Sender();
     }
 
     public testCleanup() {
