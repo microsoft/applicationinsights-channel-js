@@ -12,7 +12,7 @@ module.exports = function (grunt) {
                 ]
             },
             umd: {
-                tsconfig: './tsconfigumd.json',
+                tsconfig: './umd/tsconfigumd.json',
                 src: [
                     './TelemetryValidation/*.ts',
                     './*.ts'
