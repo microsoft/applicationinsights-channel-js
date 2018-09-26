@@ -346,9 +346,6 @@ export class Sender implements IChannelControlsAI {
      * success handler
      */
     public _onSuccess(payload: string[], countOfItemsInPayload: number) {
-        // Uncomment if you want to use DataLossanalyzer
-        // DataLossAnalyzer.decrementItemsQueued(countOfItemsInPayload);
-
         this._buffer.clearSent(payload);
     }
 
