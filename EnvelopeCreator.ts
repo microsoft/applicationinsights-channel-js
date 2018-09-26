@@ -201,7 +201,7 @@ export class ExceptionEnvelopeCreator extends EnvelopeCreator {
         let customProperties = {};
         let customMeasurements = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-        let exception: Error = telemetryItem.baseData.error;
+        let exception = telemetryItem.baseData.error;
         let severityLevel = telemetryItem.baseData.severityLevel;
         let baseData = new Exception(logger, exception, customProperties, customMeasurements, severityLevel);
         let data = new Data<Exception>(Exception.dataType, baseData);
