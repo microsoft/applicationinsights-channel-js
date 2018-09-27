@@ -191,8 +191,6 @@ export class Sender implements IChannelControlsAI {
             // ensure an invocation timeout is set
             this._setupTimer();
 
-            // Uncomment if you want to use DataLossanalyzer
-            // DataLossAnalyzer.incrementItemsQueued();
         } catch (e) {
             this._logger.throwInternal(
                 LoggingSeverity.WARNING,
@@ -385,7 +383,8 @@ export class Sender implements IChannelControlsAI {
             case RemoteDependencyData.dataType:
                 return DependencyEnvelopeCreator.DependencyEnvelopeCreator.Create(this._logger, envelope);
             default:
-                return null;
+                // default create custom event type
+                return EventEnvelopeCreator.EventEnvelopeCreator.Create(this._logger, envelope);
         }
     }
 
@@ -423,8 +422,10 @@ export class Sender implements IChannelControlsAI {
                 return PageViewPerformanceValidator.PageViewPerformanceValidator.Validate(envelope);
             case RemoteDependencyData.dataType:
                 return RemoteDepdencyValidator.RemoteDepdencyValidator.Validate(envelope);
+
+            default:
+                return EventValidator.EventValidator.Validate(envelope);
         }
-        return false;
     }
 
     /**
