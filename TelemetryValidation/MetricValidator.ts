@@ -5,6 +5,6 @@ export class MetricValidator implements ITypeValidator {
     static MetricValidator = new MetricValidator();
 
     Validate(event: ITelemetryItem): boolean {
-        return false;
+        return true;
     }
 }

@@ -179,6 +179,10 @@ export class EventEnvelopeCreator extends EnvelopeCreator {
 
         let customProperties = {};
         let customMeasurements = {};
+        if (telemetryItem.baseType !== Event.dataType) { // if its not a known type, its treated as custom event
+            EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.baseData, customProperties, customMeasurements);
+        }
+        
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
         let eventName = telemetryItem.baseData.name;
         let baseData = new Event(logger, eventName, customProperties, customMeasurements);
@@ -201,7 +205,7 @@ export class ExceptionEnvelopeCreator extends EnvelopeCreator {
         let customProperties = {};
         let customMeasurements = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-        let exception = telemetryItem.baseData.exception;
+        let exception = telemetryItem.baseData.error;
         let severityLevel = telemetryItem.baseData.severityLevel;
         let baseData = new Exception(logger, exception, customProperties, customMeasurements, severityLevel);
         let data = new Data<Exception>(Exception.dataType, baseData);
