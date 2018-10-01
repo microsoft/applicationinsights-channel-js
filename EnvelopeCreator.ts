@@ -2,7 +2,7 @@
 import {
     IEnvelope, Data, Envelope,
     RemoteDependencyData, Event, Exception,
-    Metric, PageView, Trace, PageViewPerformance
+    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry
 } from 'applicationinsights-common';
 import { 
     ITelemetryItem, CoreUtils,
@@ -153,14 +153,20 @@ export class DependencyEnvelopeCreator extends EnvelopeCreator {
         let customMeasurements = {};
         let customProperties = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-        let id = telemetryItem.baseData.id;
-        let absoluteUrl = telemetryItem.baseData.absoluteUrl;
-        let command = telemetryItem.baseData.command;
-        let totalTime = telemetryItem.baseData.totalTime;
-        let success = telemetryItem.baseData.success;
-        let resultCode = telemetryItem.baseData.resultCode;
-        let method = telemetryItem.baseData.method;
-        let baseData = new RemoteDependencyData(logger, id, absoluteUrl, command, totalTime, success, resultCode, method, customProperties, customMeasurements);
+        let bd = telemetryItem.baseData as IDependencyTelemetry;
+        if (CoreUtils.isNullOrUndefined(bd)) {
+            logger.warnToConsole("Invalid input for dependency data");
+            return null;
+        }
+
+        let id = bd.id;
+        let absoluteUrl = bd.absoluteUrl;
+        let command = bd.commandName;
+        let duration = bd.duration;
+        let success = bd.success;
+        let resultCode = bd.resultCode;
+        let method = bd.method;
+        let baseData = new RemoteDependencyData(logger, id, absoluteUrl, command, duration, success, resultCode, method, customProperties, customMeasurements);
         let data = new Data<RemoteDependencyData>(RemoteDependencyData.dataType, baseData);
         return EnvelopeCreator.createEnvelope<RemoteDependencyData>(logger, RemoteDependencyData.envelopeType, telemetryItem, data);
     }
@@ -260,6 +266,7 @@ export class PageViewEnvelopeCreator extends EnvelopeCreator {
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
         let name = telemetryItem.baseData.name;
         let url = telemetryItem.baseData.uri;
+        // Todo: move IPageViewTelemetry to common as we are missing type checks on baseData here
 
         // refUri is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
         if (!CoreUtils.isNullOrUndefined(telemetryItem.baseData.refUri)) {
