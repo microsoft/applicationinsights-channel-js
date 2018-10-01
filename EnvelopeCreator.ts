@@ -2,13 +2,12 @@
 import {
     IEnvelope, Data, Envelope,
     RemoteDependencyData, Event, Exception,
-    Metric, PageView, Trace, PageViewPerformance
+    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry
 } from 'applicationinsights-common';
 import { 
     ITelemetryItem, CoreUtils,
     IDiagnosticLogger, LoggingSeverity, _InternalMessageId
 } from 'applicationinsights-core-js';
-import { IDependencyTelemetry } from 'applicationinsights-common';
 
 export const ContextTagKeys: string[] = [
     "ai.application.ver",
