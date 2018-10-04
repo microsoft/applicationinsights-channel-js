@@ -25,6 +25,7 @@ import {
     _InternalMessageId, LoggingSeverity, IDiagnosticLogger, IAppInsightsCore, IPlugin,
 } from 'applicationinsights-core-js';
 import { CoreUtils } from 'applicationinsights-core-js';
+import { Offline } from './Offline';
 
 declare var XDomainRequest: {
     prototype: IXDomainRequest;
@@ -232,6 +233,15 @@ export class Sender implements IChannelControlsAI {
                         "Response code " + xhr.status + ". Will retry to send " + payload.length + " items.");
                 } else {
                     this._onError(payload, this._formatErrorMessageXhr(xhr));
+                }
+            } else if (xhr.status === 0 || Offline.isOffline()) { // offline
+                if (!this._config.isRetryDisabled()) {
+                    const offlineBackOffMultiplier = 10; // arbritrary number
+                    this._resendPayload(payload, offlineBackOffMultiplier);
+
+                    this._logger.throwInternal(
+                        LoggingSeverity.WARNING,
+                        _InternalMessageId.TransmissionFailed, `. Offline - Response Code: ${xhr.status}. Offline status: ${Offline.isOffline()}. Will retry to send ${payload.length} items.`);
                 }
             } else {
                 if (xhr.status === 206) {
@@ -510,7 +520,7 @@ export class Sender implements IChannelControlsAI {
      * Resend payload. Adds payload back to the send buffer and setup a send timer (with exponential backoff).
      * @param payload
      */
-    private _resendPayload(payload: string[]) {
+    private _resendPayload(payload: string[], linearFactor: number = 1) {
         if (!payload || payload.length === 0) {
             return;
         }
@@ -523,14 +533,14 @@ export class Sender implements IChannelControlsAI {
         }
 
         // setup timer
-        this._setRetryTime();
+        this._setRetryTime(linearFactor);
         this._setupTimer();
     }
 
     /** Calculates the time to wait before retrying in case of an error based on
      * http://en.wikipedia.org/wiki/Exponential_backoff
      */
-    private _setRetryTime() {
+    private _setRetryTime(linearFactor: number) {
         const SlotDelayInSeconds = 10;
         var delayInSeconds: number;
 
@@ -540,6 +550,7 @@ export class Sender implements IChannelControlsAI {
             var backOffSlot = (Math.pow(2, this._consecutiveErrors) - 1) / 2;
             // tslint:disable-next-line:insecure-random
             var backOffDelay = Math.floor(Math.random() * backOffSlot * SlotDelayInSeconds) + 1;
+            backOffDelay = linearFactor * backOffDelay; 
             delayInSeconds = Math.max(Math.min(backOffDelay, 3600), SlotDelayInSeconds);
         }
 
