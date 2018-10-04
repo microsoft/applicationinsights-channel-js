@@ -1,12 +1,12 @@
 /// <reference path="./TestFramework/Common.ts" />
 import { Sender } from "../Sender";
-import { ITelemetryItem, DiagnosticLogger } from "applicationinsights-core-js";
+import { Offline } from '../Offline';
+import { ITelemetryItem } from "applicationinsights-core-js";
 
 export class SenderTests extends TestClass {
     private _sender: Sender;
 
     public testInitialize() {
-        let logger = new DiagnosticLogger({instrumentationKey: ""});
         this._sender = new Sender();
     }
 
@@ -169,6 +169,42 @@ export class SenderTests extends TestClass {
 
                 // Assert timestamp
                 Assert.ok(appInsightsEnvelope.time);
+            }
+        });
+
+        this.testCase({
+            name: 'Offline watcher is listening to events',
+            test: () => {
+                Assert.ok(Offline.isListening, 'Offline is listening');
+                Assert.equal(true, Offline.isOnline(), 'Offline reports online status');
+                Assert.equal(false, Offline.isOffline(), 'Offline reports offline status');
+            }
+        });
+
+        this.testCase({
+            name: 'Offline watcher responds to offline events (window.addEventListener)',
+            test: () => {
+                // Setup
+                const offlineEvent = new Event('offline');
+                const onlineEvent = new Event('online');
+
+                // Verify precondition
+                Assert.ok(Offline.isListening);
+                Assert.ok(Offline.isOnline());
+
+                // Act - Go offline
+                window.dispatchEvent(offlineEvent);
+                this.clock.tick(1);
+
+                // Verify offline
+                Assert.ok(Offline.isOffline());
+
+                // Act - Go online
+                window.dispatchEvent(onlineEvent);
+                this.clock.tick(1);
+
+                // Verify online
+                Assert.ok(Offline.isOnline());
             }
         });
     }

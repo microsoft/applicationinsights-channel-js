@@ -25,6 +25,7 @@ import {
     _InternalMessageId, LoggingSeverity, IDiagnosticLogger, IAppInsightsCore, IPlugin,
 } from 'applicationinsights-core-js';
 import { CoreUtils } from 'applicationinsights-core-js';
+import { Offline } from './Offline';
 
 declare var XDomainRequest: {
     prototype: IXDomainRequest;
@@ -233,15 +234,14 @@ export class Sender implements IChannelControlsAI {
                 } else {
                     this._onError(payload, this._formatErrorMessageXhr(xhr));
                 }
-            } else if (xhr.status === 0 || navigator.onLine === false) { // offline
+            } else if (xhr.status === 0 || Offline.isOffline()) { // offline
                 if (!this._config.isRetryDisabled()) {
                     const offlineBackOffMultiplier = 10; // arbritrary number
                     this._resendPayload(payload, offlineBackOffMultiplier);
 
                     this._logger.throwInternal(
                         LoggingSeverity.WARNING,
-                        _InternalMessageId.TransmissionFailed, ". " +
-                        "Offline - Response Code: " + xhr.status + ". Will retry to send " + payload.length + " items.");
+                        _InternalMessageId.TransmissionFailed, `. Offline - Response Code: ${xhr.status}. Offline status: ${Offline.isOffline()}. Will retry to send ${payload.length} items.`);
                 }
             } else {
                 if (xhr.status === 206) {
