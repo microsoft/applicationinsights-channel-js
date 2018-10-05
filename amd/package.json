@@ -1,6 +1,6 @@
 {
     "name": "applicationinsights-channel-js",
-    "version": "0.0.51",
+    "version": "0.0.53",
     "description": "Microsoft Application Insights JavaScript SDK Channel AMD",
     "main": "bundle/applicationinsights-channel-js.js",
     "types": "bundle/applicationinsights-channel-js.d.ts",
@@ -15,8 +15,8 @@
         "tslint-microsoft-contrib": "^5.2.1"
     },
     "dependencies": {
-        "applicationinsights-common": "0.0.93",
-        "applicationinsights-core-js": "0.0.89"
+        "applicationinsights-common": "0.0.95",
+        "applicationinsights-core-js": "0.0.91"
     },
     "publishConfig": {
         "registry": "https://mseng.pkgs.visualstudio.com/_packaging/ApplicationInsights-Team/npm/registry"
