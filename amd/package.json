@@ -4,6 +4,9 @@
     "description": "Microsoft Application Insights JavaScript SDK Channel AMD",
     "main": "bundle/applicationinsights-channel-js.js",
     "types": "bundle/applicationinsights-channel-js.d.ts",
+    "scripts": {
+        "test": "grunt test"
+    },
     "devDependencies": {
         "typescript": "2.5.3",
         "grunt": "1.0.1",
