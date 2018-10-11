@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/Microsoft/applicationinsights-channel-js.svg?branch=master)](https://travis-ci.org/Microsoft/applicationinsights-channel-js)
+[![Build status](https://dev.azure.com/mseng/AppInsights/_apis/build/status/1DS%20JavaScript%20SDK%20-%20Channel)](https://dev.azure.com/mseng/AppInsights/_build/latest?definitionId=7614)
 
 # Contributing
 
