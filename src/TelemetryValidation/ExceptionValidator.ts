@@ -1,5 +1,5 @@
 import { ITypeValidator } from './ITypeValidator';
-import { ITelemetryItem } from 'applicationinsights-core-js';
+import { ITelemetryItem } from '@microsoft/applicationinsights-core-js';
 
 export class ExceptionValidator implements ITypeValidator {
     static ExceptionValidator = new ExceptionValidator();

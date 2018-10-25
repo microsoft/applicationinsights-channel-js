@@ -1,7 +1,7 @@
 /// <reference path="./TestFramework/Common.ts" />
 import { Sender } from "../src/Sender";
 import { Offline } from '../src/Offline';
-import { ITelemetryItem } from "applicationinsights-core-js";
+import { ITelemetryItem } from "@microsoft/applicationinsights-core-js";
 
 export class SenderTests extends TestClass {
     private _sender: Sender;

@@ -1,5 +1,5 @@
 {
-    "name": "applicationinsights-channel-js",
+    "name": "@microsoft/applicationinsights-channel-js",
     "version": "1.0.0-beta",
     "description": "Microsoft Application Insights JavaScript SDK Channel",
     "main": "dist-esm/applicationinsights-channel-js.js",
@@ -26,7 +26,7 @@
         "typescript": "2.5.3"
     },
     "dependencies": {
-        "applicationinsights-core-js": "^1.0.0-beta",
-        "applicationinsights-common": "^1.0.0-beta"
+        "@microsoft/applicationinsights-core-js": "^1.0.0-beta",
+        "@microsoft/applicationinsights-common": "^1.0.0-beta"
     }
 }

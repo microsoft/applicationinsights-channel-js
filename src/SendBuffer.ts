@@ -1,5 +1,5 @@
-﻿import { Util } from 'applicationinsights-common';
-import { IDiagnosticLogger, LoggingSeverity, _InternalMessageId } from 'applicationinsights-core-js';
+﻿import { Util } from '@microsoft/applicationinsights-common';
+import { IDiagnosticLogger, LoggingSeverity, _InternalMessageId } from '@microsoft/applicationinsights-core-js';
 import { ISenderConfig } from './Interfaces';
 
 export interface ISendBuffer {
