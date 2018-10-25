@@ -1,6 +1,6 @@
 /// <reference path="./TestFramework/Common.ts" />
-import { Sender } from "../Sender";
-import { Offline } from '../Offline';
+import { Sender } from "../src/Sender";
+import { Offline } from '../src/Offline';
 import { ITelemetryItem } from "applicationinsights-core-js";
 
 export class SenderTests extends TestClass {

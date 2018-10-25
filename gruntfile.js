@@ -1,30 +1,11 @@
 module.exports = function (grunt) {
     grunt.initConfig({
-        tslint: {
-            options: {
-                rulesDirectory: 'node_modules/tslint-microsoft-contrib',
-            },
-            files: {
-                src: ['./**/*.ts', '!./**/node_modules/**/*.ts', '!./Tests/**/*.ts'],
-            }
-        },
         ts: {
             options: {
                 comments: true
             },
             default: {
-                tsconfig: './tsconfig.json',
-                src: [
-                    './TelemetryValidation/*.ts',
-                    './*.ts'
-                ]
-            },
-            umd: {
-                tsconfig: './tsconfigumd.json',
-                src: [
-                    './TelemetryValidation/*.ts',
-                    './*.ts'
-                ]
+                tsconfig: './tsconfig.json'
             },
             test: {
                 tsconfig: './Tests/tsconfig.json',
@@ -57,8 +38,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-ts");
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-qunit');
-    grunt.loadNpmTasks('grunt-tslint');
     grunt.registerTask("default", ["ts:default"]);
-    grunt.registerTask("umd", ["ts:umd"]);
     grunt.registerTask("test", ["ts:default", "ts:test", "qunit:channel"]);
 };
