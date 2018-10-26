@@ -1,13 +1,13 @@
-///<reference types="applicationinsights-core-js" />
+///<reference types="@microsoft/applicationinsights-core-js" />
 import {
     IEnvelope, Data, Envelope,
     RemoteDependencyData, Event, Exception,
     Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry
-} from 'applicationinsights-common';
+} from '@microsoft/applicationinsights-common';
 import { 
     ITelemetryItem, CoreUtils,
     IDiagnosticLogger, LoggingSeverity, _InternalMessageId
-} from 'applicationinsights-core-js';
+} from '@microsoft/applicationinsights-core-js';
 
 export const ContextTagKeys: string[] = [
     "ai.application.ver",

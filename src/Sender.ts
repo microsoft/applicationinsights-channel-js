@@ -19,12 +19,12 @@ import {
     Trace, Exception, Metric,
     PageViewPerformance, RemoteDependencyData,
     IChannelControlsAI
-} from 'applicationinsights-common';
+} from '@microsoft/applicationinsights-common';
 import {
     ITelemetryPlugin, ITelemetryItem, IConfiguration,
     _InternalMessageId, LoggingSeverity, IDiagnosticLogger, IAppInsightsCore, IPlugin,
-} from 'applicationinsights-core-js';
-import { CoreUtils } from 'applicationinsights-core-js';
+} from '@microsoft/applicationinsights-core-js';
+import { CoreUtils } from '@microsoft/applicationinsights-core-js';
 import { Offline } from './Offline';
 
 declare var XDomainRequest: {

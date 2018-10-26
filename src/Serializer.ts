@@ -1,5 +1,5 @@
-﻿import { Util, ISerializable, FieldType } from 'applicationinsights-common';
-import { IDiagnosticLogger, LoggingSeverity, _InternalMessageId } from 'applicationinsights-core-js';
+﻿import { Util, ISerializable, FieldType } from '@microsoft/applicationinsights-common';
+import { IDiagnosticLogger, LoggingSeverity, _InternalMessageId } from '@microsoft/applicationinsights-core-js';
 
 export class Serializer {
 
