@@ -2,10 +2,12 @@
     "name": "@microsoft/applicationinsights-channel-js",
     "version": "1.0.0-beta",
     "description": "Microsoft Application Insights JavaScript SDK Channel",
-    "main": "dist-esm/applicationinsights-channel-js.js",
+    "main": "dist/applicationinsights-channel-js.min.js",
+    "module": "dist-esm/applicationinsights-channel-js.js",
     "types": "types/applicationinsights-channel-js.d.ts",
     "browser": "browser/applicationinsights-channel-js.min.js",
     "sideEffects": false,
+    "repository": "github:Microsoft/applicationinsights-channel-js",
     "scripts": {
         "build": "npm run build:esm && npm run build:browser",
         "build:esm": "grunt",
@@ -21,12 +23,12 @@
         "rollup-plugin-node-resolve": "^3.4.0",
         "rollup-plugin-replace": "^2.1.0",
         "rollup-plugin-uglify": "^6.0.0",
-        "rollup-plugin-visualizer": "^0.9.2",
         "tslib": "^1.9.3",
         "typescript": "2.5.3"
     },
     "dependencies": {
-        "@microsoft/applicationinsights-core-js": "^1.0.0-beta",
-        "@microsoft/applicationinsights-common": "^1.0.0-beta"
-    }
+        "@microsoft/applicationinsights-core-js": "^1.0.0-beta.2",
+        "@microsoft/applicationinsights-common": "^1.0.0-beta.3"
+    },
+    "license": "MIT"
 }

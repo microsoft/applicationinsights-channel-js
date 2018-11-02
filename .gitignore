@@ -171,5 +171,13 @@ node_modules/
 out/
 coreSDK/node_modules
 
+# Build directories
+browser/
+dist-esm/
+types/
+
 # Grunt
 .tscache
+
+# Rollup
+statistics.html
