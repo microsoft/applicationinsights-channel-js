@@ -2,7 +2,7 @@
 import {
     IEnvelope, Data, Envelope,
     RemoteDependencyData, Event, Exception,
-    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry
+    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry, IEventTelemetry
 } from '@microsoft/applicationinsights-common';
 import { 
     ITelemetryItem, CoreUtils,
@@ -125,6 +125,9 @@ export abstract class EnvelopeCreator {
         }
 
         // loop through the envelope tags (extension of Part A) and pick out the ones that should go in outgoing envelope tags
+        if (!telemetryItem.tags) {
+            telemetryItem.tags = [];
+        }
         telemetryItem.tags.forEach((tag) => {
             for (let key in tag) {
                 if (tag.hasOwnProperty(key)) {
