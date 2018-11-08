@@ -1,11 +1,9 @@
 {
     "name": "@microsoft/applicationinsights-channel-js",
-    "version": "1.0.0-beta",
+    "version": "1.0.0-beta.3",
     "description": "Microsoft Application Insights JavaScript SDK Channel",
-    "main": "dist/applicationinsights-channel-js.min.js",
-    "module": "dist-esm/applicationinsights-channel-js.js",
+    "main": "dist-esm/applicationinsights-channel-js.js",
     "types": "types/applicationinsights-channel-js.d.ts",
-    "browser": "browser/applicationinsights-channel-js.min.js",
     "sideEffects": false,
     "repository": "github:Microsoft/applicationinsights-channel-js",
     "scripts": {
@@ -28,7 +26,7 @@
     },
     "dependencies": {
         "@microsoft/applicationinsights-core-js": "^1.0.0-beta.2",
-        "@microsoft/applicationinsights-common": "^1.0.0-beta.3"
+        "@microsoft/applicationinsights-common": "^1.0.0-beta.4"
     },
     "license": "MIT"
 }
