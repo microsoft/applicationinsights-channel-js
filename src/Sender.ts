@@ -404,13 +404,13 @@ export class Sender implements IChannelControlsAI {
 
         // set default values
         resultConfig.endpointUrl = () => config.endpointUrl || "https://dc.services.visualstudio.com/v2/track";
-        resultConfig.emitLineDelimitedJson = () => Util.stringToBoolOrDefault(pluginConfig.emitLineDelimitedJson);
-        resultConfig.maxBatchInterval = () => !isNaN(pluginConfig.maxBatchInterval) ? pluginConfig.maxBatchInterval : 15000;
-        resultConfig.maxBatchSizeInBytes = () => pluginConfig.maxBatchSizeInBytes > 0 ? pluginConfig.maxBatchSizeInBytes : 102400; // 100kb
-        resultConfig.disableTelemetry = () => Util.stringToBoolOrDefault(pluginConfig.disableTelemetry);
-        resultConfig.enableSessionStorageBuffer = () => Util.stringToBoolOrDefault(pluginConfig.enableSessionStorageBuffer, true);
-        resultConfig.isRetryDisabled = () => Util.stringToBoolOrDefault(pluginConfig.isRetryDisabled);
-        resultConfig.isBeaconApiDisabled = () => Util.stringToBoolOrDefault(pluginConfig.isBeaconApiDisabled, true);
+        resultConfig.emitLineDelimitedJson = () => Util.stringToBoolOrDefault(pluginConfig.emitLineDelimitedJson || config.emitLineDelimitedJson);
+        resultConfig.maxBatchInterval = () => !isNaN(pluginConfig.maxBatchInterval || config.maxBatchInterval) ? pluginConfig.maxBatchInterval || config.maxBatchInterval : 15000;
+        resultConfig.maxBatchSizeInBytes = () => pluginConfig.maxBatchSizeInBytes || config.maxBatchSizeInBytes > 0 ? pluginConfig.maxBatchSizeInBytes || config.maxBatchSizeInBytes : 102400; // 100kb
+        resultConfig.disableTelemetry = () => Util.stringToBoolOrDefault(pluginConfig.disableTelemetry || config.disableTelemetry);
+        resultConfig.enableSessionStorageBuffer = () => Util.stringToBoolOrDefault(pluginConfig.enableSessionStorageBuffer || config.enableSessionStorageBuffer, true);
+        resultConfig.isRetryDisabled = () => Util.stringToBoolOrDefault(pluginConfig.isRetryDisabled || config.isRetryDisabled);
+        resultConfig.isBeaconApiDisabled = () => Util.stringToBoolOrDefault(pluginConfig.isBeaconApiDisabled || config.isBeaconApiDisabled, true);
 
         return resultConfig;
     }
