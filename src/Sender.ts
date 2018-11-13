@@ -111,10 +111,10 @@ export class Sender implements IChannelControlsAI {
     private _serializer: Serializer;
 
     constructor() {
+        this.identifier = "AppInsightsChannelPlugin"
     }
 
     public initialize(config: IConfiguration, core: IAppInsightsCore, extensions: IPlugin[]) :void {
-        this.identifier = "AppInsightsChannelPlugin";
         this._logger = core.logger;
         this._serializer = new Serializer(core.logger);
 
