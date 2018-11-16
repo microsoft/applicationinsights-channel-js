@@ -126,7 +126,7 @@ export class Sender implements IChannelControlsAI {
         const defaultConfig = Sender._getDefaultAppInsightsChannelConfig();
         this._config = Sender._getEmptyAppInsightsChannelConfig();
         for (let field in defaultConfig) {
-            this._config[field] = () => ConfigurationManager.getConfig(config, field, this.identifier) || defaultConfig[field]();
+            this._config[field] = () => ConfigurationManager.getConfig(config, field, this.identifier, defaultConfig[field]());
         }
 
         this._buffer = (Util.canUseSessionStorage() && this._config.enableSessionStorageBuffer)
