@@ -1,6 +1,6 @@
 {
     "name": "@microsoft/applicationinsights-channel-js",
-    "version": "1.0.0-beta.4",
+    "version": "1.0.0-beta.6",
     "description": "Microsoft Application Insights JavaScript SDK Channel",
     "main": "dist/applicationinsights-channel-js.js",
     "module": "dist-esm/applicationinsights-channel-js.js",
@@ -8,6 +8,7 @@
     "sideEffects": false,
     "repository": "github:Microsoft/applicationinsights-channel-js",
     "scripts": {
+        "clean": "rm -rf browser dist dist-esm types",
         "build": "npm run build:esm && npm run build:browser",
         "build:esm": "grunt",
         "build:browser": "rollup -c",
@@ -27,7 +28,7 @@
     },
     "dependencies": {
         "@microsoft/applicationinsights-core-js": "^1.0.0-beta.2",
-        "@microsoft/applicationinsights-common": "^1.0.0-beta.5"
+        "@microsoft/applicationinsights-common": "^1.0.0-beta.7"
     },
     "license": "MIT"
 }
