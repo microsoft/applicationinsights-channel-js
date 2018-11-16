@@ -1,8 +1,7 @@
-///<reference types="@microsoft/applicationinsights-core-js" />
 import {
     IEnvelope, Data, Envelope,
     RemoteDependencyData, Event, Exception,
-    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry, IEventTelemetry
+    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry, UserTagsCS4 
 } from '@microsoft/applicationinsights-common';
 import { 
     ITelemetryItem, CoreUtils,
@@ -116,18 +115,21 @@ export abstract class EnvelopeCreator {
         envelope.name = envelope.name.replace("{0}", iKeyNoDashes);
 
         // loop through the envelope ctx (Part A) and pick out the ones that should go in outgoing envelope tags
-        for (let key in telemetryItem.ctx) {
-            if (telemetryItem.ctx.hasOwnProperty(key)) {
-                if (ContextTagKeys.indexOf(key) >= 0) {
-                    envelope.tags[key] = telemetryItem.ctx[key];
-                }
-            }
-        }
+        // for (let key in telemetryItem.ctx) {
+        //     if (telemetryItem.ctx.hasOwnProperty(key)) {
+        //         if (ContextTagKeys.indexOf(key) >= 0) {
+        //             envelope.tags[key] = telemetryItem.ctx[key];
+        //         }
+        //     }
+        // }
+        // extract all extensions from ctx
+        EnvelopeCreator.extractPartAExtensions(telemetryItem, envelope);
 
         // loop through the envelope tags (extension of Part A) and pick out the ones that should go in outgoing envelope tags
         if (!telemetryItem.tags) {
             telemetryItem.tags = [];
         }
+
         telemetryItem.tags.forEach((tag) => {
             for (let key in tag) {
                 if (tag.hasOwnProperty(key)) {
@@ -139,6 +141,29 @@ export abstract class EnvelopeCreator {
         });
 
         return envelope;
+    }
+
+    private static extractPartAExtensions(telemetryItem: ITelemetryItem, envelope: IEnvelope) {
+        let extensions = [];
+
+        extensions.push(UserTagsCS4.ExtensionName);
+        extensions.forEach(extName => {
+            let e = telemetryItem.tags[extName] || {};
+            EnvelopeCreator.parseProperties(envelope, e, UserTagsCS4.tagsKeysMap);
+
+            let t = telemetryItem.ctx[extName] || {};
+            EnvelopeCreator.parseProperties(envelope, t, UserTagsCS4.ctxKeysMap);
+        });
+    }
+
+    private static parseProperties(env: IEnvelope, source: any, map: any) {
+        for (let ky in source.keys) {
+            let val = source[ky];
+            let envKey = map.ky; // look up mapped field for existing schema
+            if (envKey && val) {
+                env.tags[envKey] = val;
+            }
+        }
     }
 }
 

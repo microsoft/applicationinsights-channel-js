@@ -377,11 +377,11 @@ var PollingAssert = /** @class */ (function () {
 /// <reference path="PollingAssert.ts" />
 /// <reference path="TestClass.ts" />
 /// <reference path="TestCase.ts" /> 
-define("Interfaces", ["require", "exports"], function (require, exports) {
+define("src/Interfaces", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("SendBuffer", ["require", "exports", "applicationinsights-common", "applicationinsights-core-js"], function (require, exports, applicationinsights_common_1, applicationinsights_core_js_1) {
+define("src/SendBuffer", ["require", "exports", "@microsoft/applicationinsights-common", "@microsoft/applicationinsights-core-js"], function (require, exports, applicationinsights_common_1, applicationinsights_core_js_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /*
@@ -548,7 +548,7 @@ define("SendBuffer", ["require", "exports", "applicationinsights-common", "appli
     }());
     exports.SessionStorageSendBuffer = SessionStorageSendBuffer;
 });
-define("EnvelopeCreator", ["require", "exports", "applicationinsights-common", "applicationinsights-core-js"], function (require, exports, applicationinsights_common_2, applicationinsights_core_js_2) {
+define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsights-common", "@microsoft/applicationinsights-core-js"], function (require, exports, applicationinsights_common_2, applicationinsights_core_js_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ContextTagKeys = [
@@ -651,14 +651,19 @@ define("EnvelopeCreator", ["require", "exports", "applicationinsights-common", "
             var iKeyNoDashes = telemetryItem.instrumentationKey.replace(/-/g, "");
             envelope.name = envelope.name.replace("{0}", iKeyNoDashes);
             // loop through the envelope ctx (Part A) and pick out the ones that should go in outgoing envelope tags
-            for (var key in telemetryItem.ctx) {
-                if (telemetryItem.ctx.hasOwnProperty(key)) {
-                    if (exports.ContextTagKeys.indexOf(key) >= 0) {
-                        envelope.tags[key] = telemetryItem.ctx[key];
-                    }
-                }
-            }
+            // for (let key in telemetryItem.ctx) {
+            //     if (telemetryItem.ctx.hasOwnProperty(key)) {
+            //         if (ContextTagKeys.indexOf(key) >= 0) {
+            //             envelope.tags[key] = telemetryItem.ctx[key];
+            //         }
+            //     }
+            // }
+            // extract all extensions from ctx
+            EnvelopeCreator.extractPartAExtensions(telemetryItem, envelope);
             // loop through the envelope tags (extension of Part A) and pick out the ones that should go in outgoing envelope tags
+            if (!telemetryItem.tags) {
+                telemetryItem.tags = [];
+            }
             telemetryItem.tags.forEach(function (tag) {
                 for (var key in tag) {
                     if (tag.hasOwnProperty(key)) {
@@ -669,6 +674,25 @@ define("EnvelopeCreator", ["require", "exports", "applicationinsights-common", "
                 }
             });
             return envelope;
+        };
+        EnvelopeCreator.extractPartAExtensions = function (telemetryItem, envelope) {
+            var extensions = [];
+            extensions.push(applicationinsights_common_2.UserTagsCS4.ExtensionName);
+            extensions.forEach(function (extName) {
+                var e = telemetryItem.tags[extName] || {};
+                EnvelopeCreator.parseProperties(envelope, e, applicationinsights_common_2.UserTagsCS4.tagsKeysMap);
+                var t = telemetryItem.ctx[extName] || {};
+                EnvelopeCreator.parseProperties(envelope, t, applicationinsights_common_2.UserTagsCS4.ctxKeysMap);
+            });
+        };
+        EnvelopeCreator.parseProperties = function (env, source, map) {
+            for (var ky in source.keys) {
+                var val = source[ky];
+                var envKey = map.ky; // look up mapped field for existing schema
+                if (envKey && val) {
+                    env.tags[envKey] = val;
+                }
+            }
         };
         return EnvelopeCreator;
     }());
@@ -686,14 +710,19 @@ define("EnvelopeCreator", ["require", "exports", "applicationinsights-common", "
             var customMeasurements = {};
             var customProperties = {};
             EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-            var id = telemetryItem.baseData.id;
-            var absoluteUrl = telemetryItem.baseData.absoluteUrl;
-            var command = telemetryItem.baseData.command;
-            var totalTime = telemetryItem.baseData.totalTime;
-            var success = telemetryItem.baseData.success;
-            var resultCode = telemetryItem.baseData.resultCode;
-            var method = telemetryItem.baseData.method;
-            var baseData = new applicationinsights_common_2.RemoteDependencyData(logger, id, absoluteUrl, command, totalTime, success, resultCode, method, customProperties, customMeasurements);
+            var bd = telemetryItem.baseData;
+            if (applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(bd)) {
+                logger.warnToConsole("Invalid input for dependency data");
+                return null;
+            }
+            var id = bd.id;
+            var absoluteUrl = bd.absoluteUrl;
+            var command = bd.commandName;
+            var duration = bd.duration;
+            var success = bd.success;
+            var resultCode = bd.resultCode;
+            var method = bd.method;
+            var baseData = new applicationinsights_common_2.RemoteDependencyData(logger, id, absoluteUrl, command, duration, success, resultCode, method, customProperties, customMeasurements);
             var data = new applicationinsights_common_2.Data(applicationinsights_common_2.RemoteDependencyData.dataType, baseData);
             return EnvelopeCreator.createEnvelope(logger, applicationinsights_common_2.RemoteDependencyData.envelopeType, telemetryItem, data);
         };
@@ -713,6 +742,9 @@ define("EnvelopeCreator", ["require", "exports", "applicationinsights-common", "
             }
             var customProperties = {};
             var customMeasurements = {};
+            if (telemetryItem.baseType !== applicationinsights_common_2.Event.dataType) {
+                EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.baseData, customProperties, customMeasurements);
+            }
             EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
             var eventName = telemetryItem.baseData.name;
             var baseData = new applicationinsights_common_2.Event(logger, eventName, customProperties, customMeasurements);
@@ -736,7 +768,7 @@ define("EnvelopeCreator", ["require", "exports", "applicationinsights-common", "
             var customProperties = {};
             var customMeasurements = {};
             EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-            var exception = telemetryItem.baseData.exception;
+            var exception = telemetryItem.baseData.error;
             var severityLevel = telemetryItem.baseData.severityLevel;
             var baseData = new applicationinsights_common_2.Exception(logger, exception, customProperties, customMeasurements, severityLevel);
             var data = new applicationinsights_common_2.Data(applicationinsights_common_2.Exception.dataType, baseData);
@@ -792,6 +824,7 @@ define("EnvelopeCreator", ["require", "exports", "applicationinsights-common", "
             EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
             var name = telemetryItem.baseData.name;
             var url = telemetryItem.baseData.uri;
+            // Todo: move IPageViewTelemetry to common as we are missing type checks on baseData here
             // refUri is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
             if (!applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(telemetryItem.baseData.refUri)) {
                 customProperties["refUri"] = telemetryItem.baseData.refUri;
@@ -867,11 +900,11 @@ define("EnvelopeCreator", ["require", "exports", "applicationinsights-common", "
     }(EnvelopeCreator));
     exports.TraceEnvelopeCreator = TraceEnvelopeCreator;
 });
-define("TelemetryValidation/ITypeValidator", ["require", "exports"], function (require, exports) {
+define("src/TelemetryValidation/ITypeValidator", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("TelemetryValidation/EventValidator", ["require", "exports"], function (require, exports) {
+define("src/TelemetryValidation/EventValidator", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var EventValidator = /** @class */ (function () {
@@ -897,7 +930,7 @@ define("TelemetryValidation/EventValidator", ["require", "exports"], function (r
     }());
     exports.EventValidator = EventValidator;
 });
-define("TelemetryValidation/TraceValidator", ["require", "exports"], function (require, exports) {
+define("src/TelemetryValidation/TraceValidator", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var TraceValidator = /** @class */ (function () {
@@ -926,7 +959,7 @@ define("TelemetryValidation/TraceValidator", ["require", "exports"], function (r
     }());
     exports.TraceValidator = TraceValidator;
 });
-define("TelemetryValidation/ExceptionValidator", ["require", "exports"], function (require, exports) {
+define("src/TelemetryValidation/ExceptionValidator", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ExceptionValidator = /** @class */ (function () {
@@ -964,21 +997,21 @@ define("TelemetryValidation/ExceptionValidator", ["require", "exports"], functio
     }());
     exports.ExceptionValidator = ExceptionValidator;
 });
-define("TelemetryValidation/MetricValidator", ["require", "exports"], function (require, exports) {
+define("src/TelemetryValidation/MetricValidator", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MetricValidator = /** @class */ (function () {
         function MetricValidator() {
         }
         MetricValidator.prototype.Validate = function (event) {
-            return false;
+            return true;
         };
         MetricValidator.MetricValidator = new MetricValidator();
         return MetricValidator;
     }());
     exports.MetricValidator = MetricValidator;
 });
-define("TelemetryValidation/PageViewPerformanceValidator", ["require", "exports"], function (require, exports) {
+define("src/TelemetryValidation/PageViewPerformanceValidator", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var PageViewPerformanceValidator = /** @class */ (function () {
@@ -1013,7 +1046,7 @@ define("TelemetryValidation/PageViewPerformanceValidator", ["require", "exports"
     }());
     exports.PageViewPerformanceValidator = PageViewPerformanceValidator;
 });
-define("TelemetryValidation/PageViewValidator", ["require", "exports"], function (require, exports) {
+define("src/TelemetryValidation/PageViewValidator", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var PageViewValidator = /** @class */ (function () {
@@ -1044,7 +1077,7 @@ define("TelemetryValidation/PageViewValidator", ["require", "exports"], function
     }());
     exports.PageViewValidator = PageViewValidator;
 });
-define("TelemetryValidation/RemoteDepdencyValidator", ["require", "exports"], function (require, exports) {
+define("src/TelemetryValidation/RemoteDepdencyValidator", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var RemoteDepdencyValidator = /** @class */ (function () {
@@ -1079,7 +1112,7 @@ define("TelemetryValidation/RemoteDepdencyValidator", ["require", "exports"], fu
     }());
     exports.RemoteDepdencyValidator = RemoteDepdencyValidator;
 });
-define("Serializer", ["require", "exports", "applicationinsights-common", "applicationinsights-core-js"], function (require, exports, applicationinsights_common_3, applicationinsights_core_js_3) {
+define("src/Serializer", ["require", "exports", "@microsoft/applicationinsights-common", "@microsoft/applicationinsights-core-js"], function (require, exports, applicationinsights_common_3, applicationinsights_core_js_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Serializer = /** @class */ (function () {
@@ -1238,7 +1271,65 @@ define("Serializer", ["require", "exports", "applicationinsights-common", "appli
     }());
     exports.Serializer = Serializer;
 });
-define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "TelemetryValidation/EventValidator", "TelemetryValidation/TraceValidator", "TelemetryValidation/ExceptionValidator", "TelemetryValidation/MetricValidator", "TelemetryValidation/PageViewPerformanceValidator", "TelemetryValidation/PageViewValidator", "TelemetryValidation/RemoteDepdencyValidator", "Serializer", "applicationinsights-common", "applicationinsights-core-js", "applicationinsights-core-js"], function (require, exports, SendBuffer_1, EnvelopeCreator_1, EventValidator_1, TraceValidator_1, ExceptionValidator_1, MetricValidator_1, PageViewPerformanceValidator_1, PageViewValidator_1, RemoteDepdencyValidator_1, Serializer_1, applicationinsights_common_4, applicationinsights_core_js_4, applicationinsights_core_js_5) {
+define("src/Offline", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * @description Monitors browser for offline events
+     * @export default - Offline: Static instance of OfflineListener
+     * @class OfflineListener
+     */
+    var OfflineListener = /** @class */ (function () {
+        function OfflineListener() {
+            this._onlineStatus = true;
+            if (window && window.addEventListener) {
+                window.addEventListener('online', this._setOnline.bind(this), false);
+                window.addEventListener('offline', this._setOffline.bind(this), false);
+                this.isListening = true;
+            }
+            else if (document && document.body) {
+                document.body.ononline = this._setOnline.bind(this);
+                document.body.onoffline = this._setOffline.bind(this);
+                this.isListening = true;
+            }
+            else if (document) {
+                document.ononline = this._setOnline.bind(this);
+                document.onoffline = this._setOffline.bind(this);
+                this.isListening = true;
+            }
+            else {
+                // Could not find a place to add event listener
+                this.isListening = false;
+            }
+        }
+        OfflineListener.prototype._setOnline = function () {
+            this._onlineStatus = true;
+        };
+        OfflineListener.prototype._setOffline = function () {
+            this._onlineStatus = false;
+        };
+        OfflineListener.prototype.isOnline = function () {
+            if (this.isListening) {
+                return this._onlineStatus;
+            }
+            else if (navigator) {
+                return navigator.onLine;
+            }
+            else {
+                // Cannot determine online status - report as online
+                return true;
+            }
+        };
+        OfflineListener.prototype.isOffline = function () {
+            return !this.isOnline();
+        };
+        OfflineListener.Offline = new OfflineListener;
+        return OfflineListener;
+    }());
+    exports.OfflineListener = OfflineListener;
+    exports.Offline = OfflineListener.Offline;
+});
+define("src/Sender", ["require", "exports", "src/SendBuffer", "src/EnvelopeCreator", "src/TelemetryValidation/EventValidator", "src/TelemetryValidation/TraceValidator", "src/TelemetryValidation/ExceptionValidator", "src/TelemetryValidation/MetricValidator", "src/TelemetryValidation/PageViewPerformanceValidator", "src/TelemetryValidation/PageViewValidator", "src/TelemetryValidation/RemoteDepdencyValidator", "src/Serializer", "@microsoft/applicationinsights-common", "@microsoft/applicationinsights-core-js", "@microsoft/applicationinsights-core-js", "src/Offline"], function (require, exports, SendBuffer_1, EnvelopeCreator_1, EventValidator_1, TraceValidator_1, ExceptionValidator_1, MetricValidator_1, PageViewPerformanceValidator_1, PageViewValidator_1, RemoteDepdencyValidator_1, Serializer_1, applicationinsights_common_4, applicationinsights_core_js_4, applicationinsights_core_js_5, Offline_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Sender = /** @class */ (function () {
@@ -1334,8 +1425,6 @@ define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "Teleme
                 this._buffer.enqueue(payload);
                 // ensure an invocation timeout is set
                 this._setupTimer();
-                // Uncomment if you want to use DataLossanalyzer
-                // DataLossAnalyzer.incrementItemsQueued();
             }
             catch (e) {
                 this._logger.throwInternal(applicationinsights_core_js_4.LoggingSeverity.WARNING, applicationinsights_core_js_4._InternalMessageId.FailedAddingTelemetryToBuffer, "Failed adding telemetry to the sender's buffer, some telemetry will be lost: " + applicationinsights_common_4.Util.getExceptionName(e), { exception: applicationinsights_common_4.Util.dump(e) });
@@ -1368,6 +1457,13 @@ define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "Teleme
                     }
                     else {
                         this._onError(payload, this._formatErrorMessageXhr(xhr));
+                    }
+                }
+                else if (xhr.status === 0 || Offline_1.Offline.isOffline()) {
+                    if (!this._config.isRetryDisabled()) {
+                        var offlineBackOffMultiplier = 10; // arbritrary number
+                        this._resendPayload(payload, offlineBackOffMultiplier);
+                        this._logger.throwInternal(applicationinsights_core_js_4.LoggingSeverity.WARNING, applicationinsights_core_js_4._InternalMessageId.TransmissionFailed, ". Offline - Response Code: " + xhr.status + ". Offline status: " + Offline_1.Offline.isOffline() + ". Will retry to send " + payload.length + " items.");
                     }
                 }
                 else {
@@ -1463,8 +1559,6 @@ define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "Teleme
          * success handler
          */
         Sender.prototype._onSuccess = function (payload, countOfItemsInPayload) {
-            // Uncomment if you want to use DataLossanalyzer
-            // DataLossAnalyzer.decrementItemsQueued(countOfItemsInPayload);
             this._buffer.clearSent(payload);
         };
         /**
@@ -1503,7 +1597,8 @@ define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "Teleme
                 case applicationinsights_common_4.RemoteDependencyData.dataType:
                     return EnvelopeCreator_1.DependencyEnvelopeCreator.DependencyEnvelopeCreator.Create(this._logger, envelope);
                 default:
-                    return null;
+                    // default create custom event type
+                    return EnvelopeCreator_1.EventEnvelopeCreator.EventEnvelopeCreator.Create(this._logger, envelope);
             }
         };
         Sender._getDefaultAppInsightsChannelConfig = function (config, identifier) {
@@ -1537,8 +1632,9 @@ define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "Teleme
                     return PageViewPerformanceValidator_1.PageViewPerformanceValidator.PageViewPerformanceValidator.Validate(envelope);
                 case applicationinsights_common_4.RemoteDependencyData.dataType:
                     return RemoteDepdencyValidator_1.RemoteDepdencyValidator.RemoteDepdencyValidator.Validate(envelope);
+                default:
+                    return EventValidator_1.EventValidator.EventValidator.Validate(envelope);
             }
-            return false;
         };
         /**
          * Send Beacon API request
@@ -1609,7 +1705,8 @@ define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "Teleme
          * Resend payload. Adds payload back to the send buffer and setup a send timer (with exponential backoff).
          * @param payload
          */
-        Sender.prototype._resendPayload = function (payload) {
+        Sender.prototype._resendPayload = function (payload, linearFactor) {
+            if (linearFactor === void 0) { linearFactor = 1; }
             if (!payload || payload.length === 0) {
                 return;
             }
@@ -1620,13 +1717,13 @@ define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "Teleme
                 this._buffer.enqueue(item);
             }
             // setup timer
-            this._setRetryTime();
+            this._setRetryTime(linearFactor);
             this._setupTimer();
         };
         /** Calculates the time to wait before retrying in case of an error based on
          * http://en.wikipedia.org/wiki/Exponential_backoff
          */
-        Sender.prototype._setRetryTime = function () {
+        Sender.prototype._setRetryTime = function (linearFactor) {
             var SlotDelayInSeconds = 10;
             var delayInSeconds;
             if (this._consecutiveErrors <= 1) {
@@ -1634,7 +1731,9 @@ define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "Teleme
             }
             else {
                 var backOffSlot = (Math.pow(2, this._consecutiveErrors) - 1) / 2;
+                // tslint:disable-next-line:insecure-random
                 var backOffDelay = Math.floor(Math.random() * backOffSlot * SlotDelayInSeconds) + 1;
+                backOffDelay = linearFactor * backOffDelay;
                 delayInSeconds = Math.max(Math.min(backOffDelay, 3600), SlotDelayInSeconds);
             }
             // TODO: Log the backoff time like the C# version does.
@@ -1712,7 +1811,7 @@ define("Sender", ["require", "exports", "SendBuffer", "EnvelopeCreator", "Teleme
     }());
     exports.Sender = Sender;
 });
-define("Tests/Sender.tests", ["require", "exports", "Sender", "applicationinsights-core-js"], function (require, exports, Sender_1, applicationinsights_core_js_6) {
+define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline"], function (require, exports, Sender_1, Offline_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var SenderTests = /** @class */ (function (_super) {
@@ -1721,7 +1820,6 @@ define("Tests/Sender.tests", ["require", "exports", "Sender", "applicationinsigh
             return _super !== null && _super.apply(this, arguments) || this;
         }
         SenderTests.prototype.testInitialize = function () {
-            var logger = new applicationinsights_core_js_6.DiagnosticLogger({ instrumentationKey: "" });
             this._sender = new Sender_1.Sender();
         };
         SenderTests.prototype.testCleanup = function () {
@@ -1777,10 +1875,10 @@ define("Tests/Sender.tests", ["require", "exports", "Sender", "applicationinsigh
                     Assert.equal("EventData", appInsightsEnvelope.data.baseType);
                     // Assert tags
                     Assert.ok(appInsightsEnvelope.tags);
-                    Assert.equal("d041d2e5fa834b4f9eee41ac163bf402", appInsightsEnvelope.tags["ai.session.id"]);
-                    Assert.equal("browser", appInsightsEnvelope.tags["ai.device.id"]);
-                    Assert.equal("Browser", appInsightsEnvelope.tags["ai.device.type"]);
-                    Assert.equal("javascript:1.0.18", appInsightsEnvelope.tags["ai.internal.sdkVersion"]);
+                    // Assert.equal("d041d2e5fa834b4f9eee41ac163bf402", appInsightsEnvelope.tags["ai.session.id"]);
+                    // Assert.equal("browser", appInsightsEnvelope.tags["ai.device.id"]);
+                    // Assert.equal("Browser", appInsightsEnvelope.tags["ai.device.type"]);
+                    // Assert.equal("javascript:1.0.18", appInsightsEnvelope.tags["ai.internal.sdkVersion"]);
                     // Assert name
                     Assert.ok(appInsightsEnvelope.name);
                     Assert.equal("Microsoft.ApplicationInsights.iKey.Event", appInsightsEnvelope.name);
@@ -1800,12 +1898,13 @@ define("Tests/Sender.tests", ["require", "exports", "Sender", "applicationinsigh
                         timestamp: new Date("2018-06-12"),
                         instrumentationKey: "iKey",
                         ctx: {
-                            "ai.session.id": "d041d2e5fa834b4f9eee41ac163bf402",
-                            "ai.device.id": "browser",
-                            "ai.device.type": "Browser",
-                            "ai.internal.sdkVersion": "javascript:1.0.18",
+                            "User": {
+                                "localId": "TestId",
+                                "authId": "AuthenticatedId",
+                                "id": "TestId"
+                            }
                         },
-                        tags: [{}],
+                        tags: [{ "User": { "AccountId": "TestAccountId" } }],
                         data: {
                             "property1": "val1",
                             "measurement1": 50.0,
@@ -1848,10 +1947,13 @@ define("Tests/Sender.tests", ["require", "exports", "Sender", "applicationinsigh
                     Assert.equal("PageviewData", appInsightsEnvelope.data.baseType);
                     // Assert tags
                     Assert.ok(appInsightsEnvelope.tags);
-                    Assert.equal("d041d2e5fa834b4f9eee41ac163bf402", appInsightsEnvelope.tags["ai.session.id"]);
-                    Assert.equal("browser", appInsightsEnvelope.tags["ai.device.id"]);
-                    Assert.equal("Browser", appInsightsEnvelope.tags["ai.device.type"]);
-                    Assert.equal("javascript:1.0.18", appInsightsEnvelope.tags["ai.internal.sdkVersion"]);
+                    Assert.ok("TestAccountId", appInsightsEnvelope.tags["ai.user.accountId"]);
+                    Assert.ok("AuthenticatedId", appInsightsEnvelope.tags["ai.user.authUserId"]);
+                    Assert.ok("TestId", appInsightsEnvelope.tags["ai.user.id"]);
+                    // Assert.equal("d041d2e5fa834b4f9eee41ac163bf402", appInsightsEnvelope.tags["ai.session.id"]);
+                    // Assert.equal("browser", appInsightsEnvelope.tags["ai.device.id"]);
+                    // Assert.equal("Browser", appInsightsEnvelope.tags["ai.device.type"]);
+                    // Assert.equal("javascript:1.0.18", appInsightsEnvelope.tags["ai.internal.sdkVersion"]);
                     // Assert name
                     Assert.ok(appInsightsEnvelope.name);
                     Assert.equal("Microsoft.ApplicationInsights.iKey.Pageview", appInsightsEnvelope.name);
@@ -1860,6 +1962,35 @@ define("Tests/Sender.tests", ["require", "exports", "Sender", "applicationinsigh
                     Assert.equal("iKey", appInsightsEnvelope.iKey);
                     // Assert timestamp
                     Assert.ok(appInsightsEnvelope.time);
+                }
+            });
+            this.testCase({
+                name: 'Offline watcher is listening to events',
+                test: function () {
+                    Assert.ok(Offline_2.Offline.isListening, 'Offline is listening');
+                    Assert.equal(true, Offline_2.Offline.isOnline(), 'Offline reports online status');
+                    Assert.equal(false, Offline_2.Offline.isOffline(), 'Offline reports offline status');
+                }
+            });
+            this.testCase({
+                name: 'Offline watcher responds to offline events (window.addEventListener)',
+                test: function () {
+                    // Setup
+                    var offlineEvent = new Event('offline');
+                    var onlineEvent = new Event('online');
+                    // Verify precondition
+                    Assert.ok(Offline_2.Offline.isListening);
+                    Assert.ok(Offline_2.Offline.isOnline());
+                    // Act - Go offline
+                    window.dispatchEvent(offlineEvent);
+                    _this.clock.tick(1);
+                    // Verify offline
+                    Assert.ok(Offline_2.Offline.isOffline());
+                    // Act - Go online
+                    window.dispatchEvent(onlineEvent);
+                    _this.clock.tick(1);
+                    // Verify online
+                    Assert.ok(Offline_2.Offline.isOnline());
                 }
             });
         };

@@ -189,7 +189,7 @@ declare class PollingAssert {
     */
     static createPollingAssert(assertionFunctionReturnsBoolean: () => boolean, assertDescription: string, timeoutSeconds?: number, pollIntervalMs?: number): (nextTestStep) => void;
 }
-declare module "Interfaces" {
+declare module "src/Interfaces" {
     export interface ISenderConfig {
         /**
          * The url to which payloads will be sent
@@ -251,9 +251,9 @@ declare module "Interfaces" {
         message: string;
     }
 }
-declare module "SendBuffer" {
-    import { IDiagnosticLogger } from 'applicationinsights-core-js';
-    import { ISenderConfig } from "Interfaces";
+declare module "src/SendBuffer" {
+    import { IDiagnosticLogger } from '@microsoft/applicationinsights-core-js';
+    import { ISenderConfig } from "src/Interfaces";
     export interface ISendBuffer {
         /**
          * Enqueue the payload
@@ -318,9 +318,9 @@ declare module "SendBuffer" {
         private setBuffer(key, buffer);
     }
 }
-declare module "EnvelopeCreator" {
-    import { IEnvelope, Data } from 'applicationinsights-common';
-    import { ITelemetryItem, IDiagnosticLogger } from 'applicationinsights-core-js';
+declare module "src/EnvelopeCreator" {
+    import { IEnvelope, Data } from '@microsoft/applicationinsights-common';
+    import { ITelemetryItem, IDiagnosticLogger } from '@microsoft/applicationinsights-core-js';
     export const ContextTagKeys: string[];
     export abstract class EnvelopeCreator {
         protected _logger: IDiagnosticLogger;
@@ -338,6 +338,8 @@ declare module "EnvelopeCreator" {
             [key: string]: any;
         }): void;
         protected static createEnvelope<T>(logger: IDiagnosticLogger, envelopeType: string, telemetryItem: ITelemetryItem, data: Data<T>): IEnvelope;
+        private static extractPartAExtensions(telemetryItem, envelope);
+        private static parseProperties(env, source, map);
     }
     export class DependencyEnvelopeCreator extends EnvelopeCreator {
         static DependencyEnvelopeCreator: DependencyEnvelopeCreator;
@@ -368,72 +370,72 @@ declare module "EnvelopeCreator" {
         Create(logger: IDiagnosticLogger, telemetryItem: ITelemetryItem): IEnvelope;
     }
 }
-declare module "TelemetryValidation/ITypeValidator" {
-    import { ITelemetryItem } from 'applicationinsights-core-js';
+declare module "src/TelemetryValidation/ITypeValidator" {
+    import { ITelemetryItem } from '@microsoft/applicationinsights-core-js';
     export interface ITypeValidator {
         Validate(item: ITelemetryItem): boolean;
     }
 }
-declare module "TelemetryValidation/EventValidator" {
-    import { ITypeValidator } from "TelemetryValidation/ITypeValidator";
-    import { ITelemetryItem } from 'applicationinsights-core-js';
+declare module "src/TelemetryValidation/EventValidator" {
+    import { ITypeValidator } from "src/TelemetryValidation/ITypeValidator";
+    import { ITelemetryItem } from '@microsoft/applicationinsights-core-js';
     export class EventValidator implements ITypeValidator {
         static EventValidator: EventValidator;
         Validate(item: ITelemetryItem): boolean;
     }
 }
-declare module "TelemetryValidation/TraceValidator" {
-    import { ITypeValidator } from "TelemetryValidation/ITypeValidator";
-    import { ITelemetryItem } from 'applicationinsights-core-js';
+declare module "src/TelemetryValidation/TraceValidator" {
+    import { ITypeValidator } from "src/TelemetryValidation/ITypeValidator";
+    import { ITelemetryItem } from '@microsoft/applicationinsights-core-js';
     export class TraceValidator implements ITypeValidator {
         static TraceValidator: TraceValidator;
         Validate(item: ITelemetryItem): boolean;
     }
 }
-declare module "TelemetryValidation/ExceptionValidator" {
-    import { ITypeValidator } from "TelemetryValidation/ITypeValidator";
-    import { ITelemetryItem } from 'applicationinsights-core-js';
+declare module "src/TelemetryValidation/ExceptionValidator" {
+    import { ITypeValidator } from "src/TelemetryValidation/ITypeValidator";
+    import { ITelemetryItem } from '@microsoft/applicationinsights-core-js';
     export class ExceptionValidator implements ITypeValidator {
         static ExceptionValidator: ExceptionValidator;
         Validate(item: ITelemetryItem): boolean;
         private static _validateExceptions(exceptions);
     }
 }
-declare module "TelemetryValidation/MetricValidator" {
-    import { ITypeValidator } from "TelemetryValidation/ITypeValidator";
-    import { ITelemetryItem } from 'applicationinsights-core-js';
+declare module "src/TelemetryValidation/MetricValidator" {
+    import { ITypeValidator } from "src/TelemetryValidation/ITypeValidator";
+    import { ITelemetryItem } from '@microsoft/applicationinsights-core-js';
     export class MetricValidator implements ITypeValidator {
         static MetricValidator: MetricValidator;
         Validate(event: ITelemetryItem): boolean;
     }
 }
-declare module "TelemetryValidation/PageViewPerformanceValidator" {
-    import { ITypeValidator } from "TelemetryValidation/ITypeValidator";
-    import { ITelemetryItem } from 'applicationinsights-core-js';
+declare module "src/TelemetryValidation/PageViewPerformanceValidator" {
+    import { ITypeValidator } from "src/TelemetryValidation/ITypeValidator";
+    import { ITelemetryItem } from '@microsoft/applicationinsights-core-js';
     export class PageViewPerformanceValidator implements ITypeValidator {
         static PageViewPerformanceValidator: PageViewPerformanceValidator;
         Validate(item: ITelemetryItem): boolean;
     }
 }
-declare module "TelemetryValidation/PageViewValidator" {
-    import { ITypeValidator } from "TelemetryValidation/ITypeValidator";
-    import { ITelemetryItem } from 'applicationinsights-core-js';
+declare module "src/TelemetryValidation/PageViewValidator" {
+    import { ITypeValidator } from "src/TelemetryValidation/ITypeValidator";
+    import { ITelemetryItem } from '@microsoft/applicationinsights-core-js';
     export class PageViewValidator implements ITypeValidator {
         static PageViewValidator: PageViewValidator;
         Validate(item: ITelemetryItem): boolean;
     }
 }
-declare module "TelemetryValidation/RemoteDepdencyValidator" {
-    import { ITypeValidator } from "TelemetryValidation/ITypeValidator";
-    import { ITelemetryItem } from 'applicationinsights-core-js';
+declare module "src/TelemetryValidation/RemoteDepdencyValidator" {
+    import { ITypeValidator } from "src/TelemetryValidation/ITypeValidator";
+    import { ITelemetryItem } from '@microsoft/applicationinsights-core-js';
     export class RemoteDepdencyValidator implements ITypeValidator {
         static RemoteDepdencyValidator: RemoteDepdencyValidator;
         Validate(item: ITelemetryItem): boolean;
     }
 }
-declare module "Serializer" {
-    import { ISerializable } from 'applicationinsights-common';
-    import { IDiagnosticLogger } from 'applicationinsights-core-js';
+declare module "src/Serializer" {
+    import { ISerializable } from '@microsoft/applicationinsights-common';
+    import { IDiagnosticLogger } from '@microsoft/applicationinsights-core-js';
     export class Serializer {
         private _logger;
         constructor(logger: IDiagnosticLogger);
@@ -446,11 +448,29 @@ declare module "Serializer" {
         private _serializeStringMap(map, expectedType, name);
     }
 }
-declare module "Sender" {
-    import { ISenderConfig, XDomainRequest as IXDomainRequest, IBackendResponse } from "Interfaces";
-    import { ISendBuffer } from "SendBuffer";
-    import { IEnvelope, IChannelControlsAI } from 'applicationinsights-common';
-    import { ITelemetryPlugin, ITelemetryItem, IConfiguration, IAppInsightsCore, IPlugin } from 'applicationinsights-core-js';
+declare module "src/Offline" {
+    /**
+     * @description Monitors browser for offline events
+     * @export default - Offline: Static instance of OfflineListener
+     * @class OfflineListener
+     */
+    export class OfflineListener {
+        static Offline: OfflineListener;
+        private _onlineStatus;
+        isListening: boolean;
+        private _setOnline();
+        private _setOffline();
+        constructor();
+        isOnline(): boolean;
+        isOffline(): boolean;
+    }
+    export const Offline: OfflineListener;
+}
+declare module "src/Sender" {
+    import { ISenderConfig, XDomainRequest as IXDomainRequest, IBackendResponse } from "src/Interfaces";
+    import { ISendBuffer } from "src/SendBuffer";
+    import { IEnvelope, IChannelControlsAI } from '@microsoft/applicationinsights-common';
+    import { ITelemetryPlugin, ITelemetryItem, IConfiguration, IAppInsightsCore, IPlugin } from '@microsoft/applicationinsights-core-js';
     export class Sender implements IChannelControlsAI {
         priority: number;
         identifier: string;
@@ -552,11 +572,11 @@ declare module "Sender" {
          * Resend payload. Adds payload back to the send buffer and setup a send timer (with exponential backoff).
          * @param payload
          */
-        private _resendPayload(payload);
+        private _resendPayload(payload, linearFactor?);
         /** Calculates the time to wait before retrying in case of an error based on
          * http://en.wikipedia.org/wiki/Exponential_backoff
          */
-        private _setRetryTime();
+        private _setRetryTime(linearFactor);
         /**
          * Sets up the timer which triggers actually sending the data.
          */

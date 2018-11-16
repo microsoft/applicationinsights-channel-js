@@ -2,7 +2,7 @@
 import { Sender } from "../src/Sender";
 import { Offline } from '../src/Offline';
 import { ITelemetryItem } from "@microsoft/applicationinsights-core-js";
-
+import { UserTagsCS4 } from "@microsoft/applicationinsights-common";
 export class SenderTests extends TestClass {
     private _sender: Sender;
 
@@ -71,10 +71,10 @@ export class SenderTests extends TestClass {
 
                 // Assert tags
                 Assert.ok(appInsightsEnvelope.tags);
-                Assert.equal("d041d2e5fa834b4f9eee41ac163bf402", appInsightsEnvelope.tags["ai.session.id"]);
-                Assert.equal("browser", appInsightsEnvelope.tags["ai.device.id"]);
-                Assert.equal("Browser", appInsightsEnvelope.tags["ai.device.type"]);
-                Assert.equal("javascript:1.0.18", appInsightsEnvelope.tags["ai.internal.sdkVersion"]);
+                // Assert.equal("d041d2e5fa834b4f9eee41ac163bf402", appInsightsEnvelope.tags["ai.session.id"]);
+                // Assert.equal("browser", appInsightsEnvelope.tags["ai.device.id"]);
+                // Assert.equal("Browser", appInsightsEnvelope.tags["ai.device.type"]);
+                // Assert.equal("javascript:1.0.18", appInsightsEnvelope.tags["ai.internal.sdkVersion"]);
 
                 // Assert name
                 Assert.ok(appInsightsEnvelope.name);
@@ -98,12 +98,13 @@ export class SenderTests extends TestClass {
                     timestamp: new Date("2018-06-12"),
                     instrumentationKey: "iKey",
                     ctx: {
-                        "ai.session.id": "d041d2e5fa834b4f9eee41ac163bf402",
-                        "ai.device.id": "browser",
-                        "ai.device.type": "Browser",
-                        "ai.internal.sdkVersion": "javascript:1.0.18",
+                        "User": {
+                            "localId": "TestId",
+                            "authId": "AuthenticatedId",
+                            "id": "TestId"
+                        }
                     },
-                    tags: [{}],
+                    tags: [{"User": {"AccountId": "TestAccountId"} }],
                     data: {
                         "property1": "val1",
                         "measurement1": 50.0,
@@ -154,10 +155,14 @@ export class SenderTests extends TestClass {
 
                 // Assert tags
                 Assert.ok(appInsightsEnvelope.tags);
-                Assert.equal("d041d2e5fa834b4f9eee41ac163bf402", appInsightsEnvelope.tags["ai.session.id"]);
-                Assert.equal("browser", appInsightsEnvelope.tags["ai.device.id"]);
-                Assert.equal("Browser", appInsightsEnvelope.tags["ai.device.type"]);
-                Assert.equal("javascript:1.0.18", appInsightsEnvelope.tags["ai.internal.sdkVersion"]);
+                Assert.ok("TestAccountId", appInsightsEnvelope.tags["ai.user.accountId"]);
+                Assert.ok("AuthenticatedId", appInsightsEnvelope.tags["ai.user.authUserId"]);
+                Assert.ok("TestId", appInsightsEnvelope.tags["ai.user.id"]);
+
+                // Assert.equal("d041d2e5fa834b4f9eee41ac163bf402", appInsightsEnvelope.tags["ai.session.id"]);
+                // Assert.equal("browser", appInsightsEnvelope.tags["ai.device.id"]);
+                // Assert.equal("Browser", appInsightsEnvelope.tags["ai.device.type"]);
+                // Assert.equal("javascript:1.0.18", appInsightsEnvelope.tags["ai.internal.sdkVersion"]);
 
                 // Assert name
                 Assert.ok(appInsightsEnvelope.name);

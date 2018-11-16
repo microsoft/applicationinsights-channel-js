@@ -11,7 +11,7 @@ Channel layer for the Application Insights JavaScript SDK
 ```
 npm install -g grunt-cli
 npm install
-npm run build
+npm run build --silent
 ```
 ## Test
 ```
