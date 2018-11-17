@@ -18,7 +18,8 @@ import {
     IEnvelope, PageView, Event,
     Trace, Exception, Metric,
     PageViewPerformance, RemoteDependencyData,
-    IChannelControlsAI
+    IChannelControlsAI,
+    ConfigurationManager, IConfig
 } from '@microsoft/applicationinsights-common';
 import {
     ITelemetryPlugin, ITelemetryItem, IConfiguration,
@@ -111,18 +112,23 @@ export class Sender implements IChannelControlsAI {
     private _serializer: Serializer;
 
     constructor() {
+        this.identifier = "AppInsightsChannelPlugin"
     }
 
-    public initialize(config: IConfiguration, core: IAppInsightsCore, extensions: IPlugin[]) :void {
-        this.identifier = "AppInsightsChannelPlugin";
+    public initialize(config: IConfiguration & IConfig, core: IAppInsightsCore, extensions: IPlugin[]) :void {
         this._logger = core.logger;
         this._serializer = new Serializer(core.logger);
 
         this._consecutiveErrors = 0;
         this._retryAt = null;
         this._lastSend = 0;
-        this._config = Sender._getDefaultAppInsightsChannelConfig(config, this.identifier);
         this._sender = null;
+        const defaultConfig = Sender._getDefaultAppInsightsChannelConfig();
+        this._config = Sender._getEmptyAppInsightsChannelConfig();
+        for (let field in defaultConfig) {
+            this._config[field] = () => ConfigurationManager.getConfig(config, field, this.identifier, defaultConfig[field]());
+        }
+
         this._buffer = (Util.canUseSessionStorage() && this._config.enableSessionStorageBuffer)
             ? new SessionStorageSendBuffer(this._logger, this._config) : new ArraySendBuffer(this._config);
 
@@ -398,21 +404,33 @@ export class Sender implements IChannelControlsAI {
         }
     }
 
-    private static _getDefaultAppInsightsChannelConfig(config: IConfiguration, identifier: string): ISenderConfig {
+    private static _getDefaultAppInsightsChannelConfig(): ISenderConfig {
         let resultConfig = <ISenderConfig>{};
-        let pluginConfig = config.extensionConfig && config.extensionConfig[identifier] ? config.extensionConfig[identifier] : {};
 
         // set default values
-        resultConfig.endpointUrl = () => config.endpointUrl || "https://dc.services.visualstudio.com/v2/track";
-        resultConfig.emitLineDelimitedJson = () => Util.stringToBoolOrDefault(pluginConfig.emitLineDelimitedJson);
-        resultConfig.maxBatchInterval = () => !isNaN(pluginConfig.maxBatchInterval) ? pluginConfig.maxBatchInterval : 15000;
-        resultConfig.maxBatchSizeInBytes = () => pluginConfig.maxBatchSizeInBytes > 0 ? pluginConfig.maxBatchSizeInBytes : 102400; // 100kb
-        resultConfig.disableTelemetry = () => Util.stringToBoolOrDefault(pluginConfig.disableTelemetry);
-        resultConfig.enableSessionStorageBuffer = () => Util.stringToBoolOrDefault(pluginConfig.enableSessionStorageBuffer, true);
-        resultConfig.isRetryDisabled = () => Util.stringToBoolOrDefault(pluginConfig.isRetryDisabled);
-        resultConfig.isBeaconApiDisabled = () => Util.stringToBoolOrDefault(pluginConfig.isBeaconApiDisabled, true);
+        resultConfig.endpointUrl = () => "https://dc.services.visualstudio.com/v2/track";
+        resultConfig.emitLineDelimitedJson = () => false;
+        resultConfig.maxBatchInterval = () => 15000;
+        resultConfig.maxBatchSizeInBytes = () => 102400; // 100kb
+        resultConfig.disableTelemetry = () => false;
+        resultConfig.enableSessionStorageBuffer = () => true;
+        resultConfig.isRetryDisabled = () => false;
+        resultConfig.isBeaconApiDisabled = () => true;
 
         return resultConfig;
+    }
+    
+    private static _getEmptyAppInsightsChannelConfig(): ISenderConfig {
+        return {
+            endpointUrl: undefined,
+            emitLineDelimitedJson: undefined,
+            maxBatchInterval: undefined,
+            maxBatchSizeInBytes: undefined,
+            disableTelemetry: undefined,
+            enableSessionStorageBuffer: undefined,
+            isRetryDisabled: undefined,
+            isBeaconApiDisabled: undefined
+        };
     }
 
     private static _validate(envelope: ITelemetryItem): boolean {

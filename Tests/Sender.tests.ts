@@ -1,8 +1,9 @@
 /// <reference path="./TestFramework/Common.ts" />
 import { Sender } from "../src/Sender";
 import { Offline } from '../src/Offline';
-import { ITelemetryItem } from "@microsoft/applicationinsights-core-js";
 import { partAExtensions } from "@microsoft/applicationinsights-common";
+import { ITelemetryItem, AppInsightsCore } from "@microsoft/applicationinsights-core-js";
+
 export class SenderTests extends TestClass {
     private _sender: Sender;
 
@@ -11,9 +12,35 @@ export class SenderTests extends TestClass {
     }
 
     public testCleanup() {
+        this._sender = null;
     }
 
     public registerTests() {
+
+        this.testCase({
+            name: "Channel Config: Channel can properly take args from root config",
+            test: () => {
+                this._sender.initialize(
+                    {
+                        instrumentationKey: 'abc',
+                        maxBatchInterval: 123,
+                        endpointUrl: 'https://example.com',
+                        maxBatchSizeInBytes: 654,
+                        extensionConfig: {
+                            [this._sender.identifier]: {
+                                maxBatchSizeInBytes: 456
+                            }
+                        }
+
+                    }, new AppInsightsCore(), []
+                );
+
+                Assert.equal(123, this._sender._config.maxBatchInterval(), 'Channel config can be set from root config (maxBatchInterval)');
+                Assert.equal('https://example.com', this._sender._config.endpointUrl(), 'Channel config can be set from root config (endpointUrl)');
+                Assert.notEqual(654, this._sender._config.maxBatchSizeInBytes(), 'Channel config does not equal root config option if extensionConfig field is also set');
+                Assert.equal(456, this._sender._config.maxBatchSizeInBytes(), 'Channel config prioritizes extensionConfig over root config');
+            }
+        });
 
         this.testCase({
             name: "AppInsightsTests: AppInsights Envelope created for Custom Event",
