@@ -677,22 +677,22 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
         };
         EnvelopeCreator.extractPartAExtensions = function (telemetryItem, envelope) {
             var extensions = [];
-            extensions.push(applicationinsights_common_2.UserTagsCS4.ExtensionName);
+            extensions.push(applicationinsights_common_2.partAExtensions.UserExtensionName);
             extensions.forEach(function (extName) {
                 var e = telemetryItem.tags[extName] || {};
-                EnvelopeCreator.parseProperties(envelope, e, applicationinsights_common_2.UserTagsCS4.tagsKeysMap);
+                EnvelopeCreator.parseProperties(envelope, e, applicationinsights_common_2.partAExtensions.userTagsKeysMap);
                 var t = telemetryItem.ctx[extName] || {};
-                EnvelopeCreator.parseProperties(envelope, t, applicationinsights_common_2.UserTagsCS4.ctxKeysMap);
+                EnvelopeCreator.parseProperties(envelope, t, applicationinsights_common_2.partAExtensions.userExtKeysMap);
             });
         };
         EnvelopeCreator.parseProperties = function (env, source, map) {
-            for (var ky in source.keys) {
+            Object.keys(source).forEach(function (ky) {
                 var val = source[ky];
-                var envKey = map.ky; // look up mapped field for existing schema
+                var envKey = map[ky]; // look up mapped field for existing schema
                 if (envKey && val) {
                     env.tags[envKey] = val;
                 }
-            }
+            });
         };
         return EnvelopeCreator;
     }());
@@ -1282,7 +1282,10 @@ define("src/Offline", ["require", "exports"], function (require, exports) {
     var OfflineListener = /** @class */ (function () {
         function OfflineListener() {
             this._onlineStatus = true;
-            if (window && window.addEventListener) {
+            if (typeof window === 'undefined') {
+                this.isListening = false;
+            }
+            else if (window && window.addEventListener) {
                 window.addEventListener('online', this._setOnline.bind(this), false);
                 window.addEventListener('offline', this._setOffline.bind(this), false);
                 this.isListening = true;

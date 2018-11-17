@@ -2,7 +2,7 @@
 import { Sender } from "../src/Sender";
 import { Offline } from '../src/Offline';
 import { ITelemetryItem } from "@microsoft/applicationinsights-core-js";
-import { UserTagsCS4 } from "@microsoft/applicationinsights-common";
+import { partAExtensions } from "@microsoft/applicationinsights-common";
 export class SenderTests extends TestClass {
     private _sender: Sender;
 

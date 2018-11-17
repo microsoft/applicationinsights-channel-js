@@ -1,7 +1,7 @@
 import {
     IEnvelope, Data, Envelope,
     RemoteDependencyData, Event, Exception,
-    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry, UserTagsCS4 
+    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry, partAExtensions 
 } from '@microsoft/applicationinsights-common';
 import { 
     ITelemetryItem, CoreUtils,
@@ -146,24 +146,24 @@ export abstract class EnvelopeCreator {
     private static extractPartAExtensions(telemetryItem: ITelemetryItem, envelope: IEnvelope) {
         let extensions = [];
 
-        extensions.push(UserTagsCS4.ExtensionName);
+        extensions.push(partAExtensions.UserExtensionName);
         extensions.forEach(extName => {
             let e = telemetryItem.tags[extName] || {};
-            EnvelopeCreator.parseProperties(envelope, e, UserTagsCS4.tagsKeysMap);
+            EnvelopeCreator.parseProperties(envelope, e, partAExtensions.userTagsKeysMap);
 
             let t = telemetryItem.ctx[extName] || {};
-            EnvelopeCreator.parseProperties(envelope, t, UserTagsCS4.ctxKeysMap);
+            EnvelopeCreator.parseProperties(envelope, t, partAExtensions.userExtKeysMap);
         });
     }
 
     private static parseProperties(env: IEnvelope, source: any, map: any) {
-        for (let ky in source.keys) {
+        Object.keys(source).forEach(ky => {
             let val = source[ky];
-            let envKey = map.ky; // look up mapped field for existing schema
+            let envKey = map[ky]; // look up mapped field for existing schema
             if (envKey && val) {
                 env.tags[envKey] = val;
             }
-        }
+        });
     }
 }
 
