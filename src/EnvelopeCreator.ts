@@ -114,14 +114,6 @@ export abstract class EnvelopeCreator {
         let iKeyNoDashes = telemetryItem.instrumentationKey.replace(/-/g, "");
         envelope.name = envelope.name.replace("{0}", iKeyNoDashes);
 
-        // loop through the envelope ctx (Part A) and pick out the ones that should go in outgoing envelope tags
-        // for (let key in telemetryItem.ctx) {
-        //     if (telemetryItem.ctx.hasOwnProperty(key)) {
-        //         if (ContextTagKeys.indexOf(key) >= 0) {
-        //             envelope.tags[key] = telemetryItem.ctx[key];
-        //         }
-        //     }
-        // }
         // extract all extensions from ctx
         EnvelopeCreator.extractPartAExtensions(telemetryItem, envelope);
 
