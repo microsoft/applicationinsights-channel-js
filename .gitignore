@@ -174,10 +174,14 @@ coreSDK/node_modules
 # Build directories
 browser/
 dist-esm/
+dist/
 types/
 
 # Grunt
 .tscache
+
+#npm
+npm
 
 # Rollup
 statistics.html
