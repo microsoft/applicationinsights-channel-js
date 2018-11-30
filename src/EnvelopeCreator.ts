@@ -1,9 +1,10 @@
 import {
     IEnvelope, Data, Envelope,
     RemoteDependencyData, Event, Exception,
-    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry, partAExtensions 
+    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry, partAExtensions,
+    IPageViewPerformanceTelemetry, IPageViewTelemetry
 } from '@microsoft/applicationinsights-common';
-import { 
+import {
     ITelemetryItem, CoreUtils,
     IDiagnosticLogger, LoggingSeverity, _InternalMessageId
 } from '@microsoft/applicationinsights-core-js';
@@ -208,7 +209,7 @@ export class EventEnvelopeCreator extends EnvelopeCreator {
         if (telemetryItem.baseType !== Event.dataType) { // if its not a known type, its treated as custom event
             EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.baseData, customProperties, customMeasurements);
         }
-        
+
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
         let eventName = telemetryItem.baseData.name;
         let baseData = new Event(logger, eventName, customProperties, customMeasurements);
@@ -273,7 +274,7 @@ export class PageViewEnvelopeCreator extends EnvelopeCreator {
                 _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
         }
 
-        // Since duration is not part of the domain properties in Common Schema, extract it from part C 
+        // Since duration is not part of the domain properties in Common Schema, extract it from part C
         let duration = undefined;
         if (!CoreUtils.isNullOrUndefined(telemetryItem.data) &&
             !CoreUtils.isNullOrUndefined(telemetryItem.data.duration)) {
@@ -284,28 +285,29 @@ export class PageViewEnvelopeCreator extends EnvelopeCreator {
         let customProperties = {};
         let customMeasurements = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-        let name = telemetryItem.baseData.name;
-        let url = telemetryItem.baseData.uri;
+        let bd = telemetryItem.baseData as IPageViewTelemetry;
+        let name = bd.name;
+        let url = bd.uri;
         // Todo: move IPageViewTelemetry to common as we are missing type checks on baseData here
 
         // refUri is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
-        if (!CoreUtils.isNullOrUndefined(telemetryItem.baseData.refUri)) {
-            customProperties["refUri"] = telemetryItem.baseData.refUri;
+        if (!CoreUtils.isNullOrUndefined(bd.refUri)) {
+            customProperties["refUri"] = bd.refUri;
         }
 
         // pageType is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
-        if (!CoreUtils.isNullOrUndefined(telemetryItem.baseData.pageType)) {
-            customProperties["pageType"] = telemetryItem.baseData.pageType;
+        if (!CoreUtils.isNullOrUndefined(bd.pageType)) {
+            customProperties["pageType"] = bd.pageType;
         }
 
         // isLoggedIn is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
-        if (!CoreUtils.isNullOrUndefined(telemetryItem.baseData.isLoggedIn)) {
-            customProperties["isLoggedIn"] = telemetryItem.baseData.isLoggedIn;
+        if (!CoreUtils.isNullOrUndefined(bd.isLoggedIn)) {
+            customProperties["isLoggedIn"] = bd.isLoggedIn;
         }
 
         // pageTags is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
-        if (!CoreUtils.isNullOrUndefined(telemetryItem.baseData.pageTags)) {
-            let pageTags = telemetryItem.baseData.pageTags;
+        if (!CoreUtils.isNullOrUndefined(bd.properties)) {
+            let pageTags = bd.properties;
             for (let key in pageTags) {
                 if (pageTags.hasOwnProperty(key)) {
                     customProperties[key] = pageTags[key];
@@ -333,10 +335,10 @@ export class PageViewPerformanceEnvelopeCreator extends EnvelopeCreator {
         let customProperties = {};
         let customMeasurements = {};
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
-        let name = telemetryItem.baseData.name;
-        let url = telemetryItem.baseData.uri;
-        let duration = telemetryItem.baseData.duration;
-        let baseData = new PageViewPerformance(logger, name, url, duration, customProperties, customMeasurements);
+        const bd = telemetryItem.baseData as IPageViewPerformanceTelemetry;
+        let name = bd.name;
+        let url = bd.url;
+        let baseData = new PageViewPerformance(logger, name, url, undefined, customProperties, customMeasurements);
         let data = new Data<PageViewPerformance>(PageViewPerformance.dataType, baseData);
         return EnvelopeCreator.createEnvelope<PageViewPerformance>(logger, PageViewPerformance.envelopeType, telemetryItem, data);
     }
