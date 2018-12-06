@@ -387,7 +387,7 @@ export class Sender implements IChannelControlsAI {
         if (this._config.instrumentationKey() !== orig.instrumentationKey && !CoreUtils.isNullOrUndefined(this._config.instrumentationKey())) {
             envelope = {
                 instrumentationKey: this._config.instrumentationKey(),
-                ...envelope
+                ...orig
             };
         } else {
             envelope = orig;
