@@ -382,7 +382,17 @@ export class Sender implements IChannelControlsAI {
         }
     }
 
-    public _constructEnvelope(envelope: ITelemetryItem): IEnvelope {
+    public _constructEnvelope(orig: ITelemetryItem): IEnvelope {
+        let envelope: ITelemetryItem;
+        if (this._config.instrumentationKey() !== orig.instrumentationKey) {
+            envelope = {
+                instrumentationKey: this._config.instrumentationKey(),
+                ...envelope
+            };
+        } else {
+            envelope = orig;
+        }
+
         switch (envelope.baseType) {
             case Event.dataType:
                 return EventEnvelopeCreator.EventEnvelopeCreator.Create(this._logger, envelope);
@@ -416,10 +426,11 @@ export class Sender implements IChannelControlsAI {
         resultConfig.enableSessionStorageBuffer = () => true;
         resultConfig.isRetryDisabled = () => false;
         resultConfig.isBeaconApiDisabled = () => true;
+        resultConfig.instrumentationKey = () => undefined; // Channel doesn't need iKey, it should be set already
 
         return resultConfig;
     }
-    
+
     private static _getEmptyAppInsightsChannelConfig(): ISenderConfig {
         return {
             endpointUrl: undefined,
@@ -429,7 +440,8 @@ export class Sender implements IChannelControlsAI {
             disableTelemetry: undefined,
             enableSessionStorageBuffer: undefined,
             isRetryDisabled: undefined,
-            isBeaconApiDisabled: undefined
+            isBeaconApiDisabled: undefined,
+            instrumentationKey: undefined
         };
     }
 
@@ -492,7 +504,7 @@ export class Sender implements IChannelControlsAI {
         xhr.open("POST", this._config.endpointUrl(), isAsync);
         xhr.setRequestHeader("Content-type", "application/json");
 
-        // append Sdk-Context request header only in case of breeze endpoint 
+        // append Sdk-Context request header only in case of breeze endpoint
         if (Util.isInternalApplicationInsightsEndpoint(this._config.endpointUrl())) {
             xhr.setRequestHeader(RequestHeaders.sdkContextHeader, RequestHeaders.sdkContextHeaderAppIdRequest);
         }
@@ -508,7 +520,7 @@ export class Sender implements IChannelControlsAI {
     }
 
     /**
-     * Parses the response from the backend. 
+     * Parses the response from the backend.
      * @param response - XMLHttpRequest or XDomainRequest response
      */
     private _parseResponse(response: any): IBackendResponse {
@@ -568,7 +580,7 @@ export class Sender implements IChannelControlsAI {
             var backOffSlot = (Math.pow(2, this._consecutiveErrors) - 1) / 2;
             // tslint:disable-next-line:insecure-random
             var backOffDelay = Math.floor(Math.random() * backOffSlot * SlotDelayInSeconds) + 1;
-            backOffDelay = linearFactor * backOffDelay; 
+            backOffDelay = linearFactor * backOffDelay;
             delayInSeconds = Math.max(Math.min(backOffDelay, 3600), SlotDelayInSeconds);
         }
 
@@ -616,7 +628,7 @@ export class Sender implements IChannelControlsAI {
      * Send XDomainRequest
      * @param payload {string} - The data payload to be sent.
      * @param isAsync {boolean} - Indicates if the request should be sent asynchronously
-     * 
+     *
      * Note: XDomainRequest does not support sync requests. This 'isAsync' parameter is added
      * to maintain consistency with the xhrSender's contract
      * Note: XDomainRequest does not support custom headers and we are not able to get
@@ -627,8 +639,8 @@ export class Sender implements IChannelControlsAI {
         xdr.onload = () => this._xdrOnLoad(xdr, payload);
         xdr.onerror = (event: ErrorEvent) => this._onError(payload, this._formatErrorMessageXdr(xdr), event);
 
-        // XDomainRequest requires the same protocol as the hosting page. 
-        // If the protocol doesn't match, we can't send the telemetry :(. 
+        // XDomainRequest requires the same protocol as the hosting page.
+        // If the protocol doesn't match, we can't send the telemetry :(.
         var hostingProtocol = window.location.protocol
         if (this._config.endpointUrl().lastIndexOf(hostingProtocol, 0) !== 0) {
             this._logger.throwInternal(
