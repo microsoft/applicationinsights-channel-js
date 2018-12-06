@@ -9,7 +9,7 @@ export class SenderTests extends TestClass {
 
     public testInitialize() {
         this._sender = new Sender();
-        this._sender.initialize({ instrumentationKey: ''}, new AppInsightsCore(), []);
+        this._sender.initialize({ instrumentationKey: 'iKey' }, new AppInsightsCore(), []);
     }
 
     public testCleanup() {

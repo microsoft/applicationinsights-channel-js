@@ -386,8 +386,8 @@ export class Sender implements IChannelControlsAI {
         let envelope: ITelemetryItem;
         if (this._config.instrumentationKey() !== orig.instrumentationKey && !CoreUtils.isNullOrUndefined(this._config.instrumentationKey())) {
             envelope = {
-                instrumentationKey: this._config.instrumentationKey(),
-                ...orig
+                ...orig,
+                instrumentationKey: this._config.instrumentationKey()
             };
         } else {
             envelope = orig;
