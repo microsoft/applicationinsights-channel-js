@@ -1,7 +1,7 @@
 /// <reference path="./TestFramework/Common.ts" />
 import { Sender } from "../src/Sender";
 import { Offline } from '../src/Offline';
-import { partAExtensions } from "@microsoft/applicationinsights-common";
+import { partAExtensions, Exception } from "@microsoft/applicationinsights-common";
 import { ITelemetryItem, AppInsightsCore } from "@microsoft/applicationinsights-core-js";
 
 export class SenderTests extends TestClass {
@@ -133,17 +133,19 @@ export class SenderTests extends TestClass {
                         }
                     },
                     tags: [{"User": {"AccountId": "TestAccountId"} }],
-                    data: {
-                        "property1": "val1",
-                        "measurement1": 50.0,
-                        "measurement2": 1.3,
-                        "property2": "val2",
-                        "duration": 300000
-                    },
                     baseType: "PageviewData",
                     baseData: {
                         "name": "Page View Name",
-                        "uri": "https://fakeUri.com"
+                        "uri": "https://fakeUri.com",
+                        properties: {
+                            "property1": "val1",
+                            "property2": "val2"
+                        },
+                        measurements: {
+                            "measurement1": 50.0,
+                            "measurement2": 1.3,
+                            "duration": 300000
+                        }
                     }
                 };
 
@@ -202,6 +204,50 @@ export class SenderTests extends TestClass {
 
                 // Assert timestamp
                 Assert.ok(appInsightsEnvelope.time);
+            }
+        });
+
+        this.testCase({
+            name: 'Envelope: custom properties are put into envelope',
+            test: () => {
+                const inputEnvelope: ITelemetryItem = {
+                    name: "test",
+                    timestamp: new Date("2018-06-12"),
+                    instrumentationKey: "iKey",
+                    baseType: Exception.dataType,
+                    baseData: {
+                        error: new Error(),
+                        properties: {
+                            "property1": "val1",
+                            "property2": "val2"
+                        },
+                        measurements: {
+                            "measurement1": 50.0,
+                            "measurement2": 1.3
+                        }
+                    },
+                    data: {
+                        "property3": "val3",
+                        "measurement3": 3.0
+                    },
+                    ctx: {
+                        "User": {
+                            "localId": "TestId",
+                            "authId": "AuthenticatedId",
+                            "id": "TestId"
+                        }
+                    },
+                    tags: [{"User": {"AccountId": "TestAccountId"} }],
+                };
+
+                // Act
+                let appInsightsEnvelope = this._sender._constructEnvelope(inputEnvelope);
+                let baseData = appInsightsEnvelope.data.baseData;
+
+                Assert.equal(-1, JSON.stringify(baseData).indexOf("property3"), "ExceptionData: searching: customProperties (item.data) are not added to telemetry envelope")
+                Assert.equal("val1", baseData.properties["property1"], "ExceptionData: properties (item.baseData.properties) are added to telemetry envelope");
+                Assert.equal(50.0, baseData.measurements["measurement1"], "ExceptionData: measurements (item.baseData.measurements) are added to telemetry envelope");
+
             }
         });
 
