@@ -1,8 +1,10 @@
 import {
-    IEnvelope, Data, Envelope,
+    IEnvelope, Data, Envelope, SampleRate,
     RemoteDependencyData, Event, Exception,
-    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry, partAExtensions,
-    IPageViewPerformanceTelemetry, IPageViewTelemetry
+    Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry,
+    IPageViewPerformanceTelemetry, IPageViewTelemetry, CtxTagKeys,
+    UnmappedKeys, AppExtensionKeys, DeviceExtensionKeys, 
+    IngestExtKeys, WebExtensionKeys, OSExtKeys, HttpMethod
 } from '@microsoft/applicationinsights-common';
 import {
     ITelemetryItem, CoreUtils,
@@ -123,39 +125,167 @@ export abstract class EnvelopeCreator {
             telemetryItem.tags = [];
         }
 
-        telemetryItem.tags.forEach((tag) => {
-            for (let key in tag) {
-                if (tag.hasOwnProperty(key)) {
-                    if (ContextTagKeys.indexOf(key) >= 0) {
-                        envelope.tags[key] = tag[key];
-                    }
-                }
-            }
-        });
-
         return envelope;
     }
 
-    private static extractPartAExtensions(telemetryItem: ITelemetryItem, envelope: IEnvelope) {
-        let extensions = [];
+    /*
+     * Maps Part A data from CS 4.0
+     */
+    private static extractPartAExtensions(item: ITelemetryItem, env: IEnvelope) {
+        let keysFound = [];
+        let tagKeysfound = [];
+        if (!env.tags) {
+            env.tags = [];
+        }
 
-        extensions.push(partAExtensions.UserExtensionName);
-        extensions.forEach(extName => {
-            let e = telemetryItem.tags[extName] || {};
-            EnvelopeCreator.parseProperties(envelope, e, partAExtensions.userTagsKeysMap);
+        if (!item.ctx) {
+            item.ctx = {};
+        }
+        
+        if (!item.tags) {
+            item.tags = [];
+        }
 
-            let t = telemetryItem.ctx[extName] || {};
-            EnvelopeCreator.parseProperties(envelope, t, partAExtensions.userExtKeysMap);
-        });
-    }
+        if (item.tags[UnmappedKeys.applicationVersion]) {
+            env.tags[CtxTagKeys.applicationVersion] = item.tags[UnmappedKeys.applicationVersion];
+            tagKeysfound.push(UnmappedKeys.applicationVersion);
+        }
 
-    private static parseProperties(env: IEnvelope, source: any, map: any) {
-        Object.keys(source).forEach(ky => {
-            let val = source[ky];
-            let envKey = map[ky]; // look up mapped field for existing schema
-            if (envKey && val) {
-                env.tags[envKey] = val;
-            }
+        if (item.tags[UnmappedKeys.applicationBuild]) {
+            env.tags[CtxTagKeys.applicationBuild] = item.tags[UnmappedKeys.applicationBuild];
+            tagKeysfound.push(UnmappedKeys.applicationBuild);
+        }
+
+        if (item.ctx[AppExtensionKeys.sessionId]) {
+            env.tags[CtxTagKeys.sessionId] = item.ctx[AppExtensionKeys.sessionId];
+            keysFound.push(AppExtensionKeys.sessionId);
+        }
+
+        if (item.tags[CtxTagKeys.sessionIsFirst]) {
+            env.tags[CtxTagKeys.sessionIsFirst] = item.tags[CtxTagKeys.sessionIsFirst];
+            tagKeysfound.push(CtxTagKeys.sessionIsFirst);
+        }
+
+        if (item.ctx[DeviceExtensionKeys.localId]) {
+            env.tags[CtxTagKeys.deviceId] = item.ctx[DeviceExtensionKeys.localId];
+            keysFound.push(DeviceExtensionKeys.localId);
+        }
+
+        if (item.ctx[IngestExtKeys.clientIp]) {
+            env.tags[CtxTagKeys.deviceIp] = item.ctx[IngestExtKeys.clientIp];
+            tagKeysfound.push(IngestExtKeys.clientIp);
+        }
+
+        if (item.ctx[WebExtensionKeys.browserLang]) {
+            env.tags[CtxTagKeys.deviceLanguage] = item.ctx[WebExtensionKeys.browserLang];
+            keysFound.push(WebExtensionKeys.browserLang);
+        }
+
+        if (item.tags[UnmappedKeys.deviceLocale]) {
+            env.tags[CtxTagKeys.deviceLocale] = item.tags[UnmappedKeys.deviceLocale];
+            tagKeysfound.push(UnmappedKeys.deviceLocale);
+        }
+
+        if (item.ctx[DeviceExtensionKeys.model] ) {
+            env.tags[CtxTagKeys.deviceModel] = item.ctx[DeviceExtensionKeys.model];
+            keysFound.push(DeviceExtensionKeys.model);
+        }
+
+        if (item.ctx[UnmappedKeys.deviceNetwork]) {
+            env.tags[CtxTagKeys.deviceNetwork] = item.ctx[UnmappedKeys.deviceNetwork];
+            keysFound.push(UnmappedKeys.deviceNetwork);
+        }
+
+        if (item.ctx[UnmappedKeys.deviceOEMName]) {
+            env.tags[CtxTagKeys.deviceOEMName] = item.ctx[UnmappedKeys.deviceOEMName];
+            keysFound.push(UnmappedKeys.deviceOSVersion);
+        }
+
+        if (item.tags[UnmappedKeys.deviceOSVersion]) {
+            env.tags[CtxTagKeys.deviceOSVersion] = item.tags[UnmappedKeys.deviceOSVersion];
+            tagKeysfound.push(UnmappedKeys.deviceOSVersion);
+        }
+
+        if (item.ctx[OSExtKeys.deviceOS]) {
+            env.tags[CtxTagKeys.deviceOS] = item.ctx[OSExtKeys.deviceOS];
+            keysFound.push(OSExtKeys.deviceOS);
+        }
+
+        if (item.ctx[UnmappedKeys.deviceNetwork]) {
+            env.tags[CtxTagKeys.deviceNetwork] = item.ctx[UnmappedKeys.deviceNetwork];
+            keysFound.push(UnmappedKeys.deviceNetwork);
+        }
+
+        if (item.ctx[DeviceExtensionKeys.deviceType]) {
+            env.tags[CtxTagKeys.deviceType] = item.ctx[DeviceExtensionKeys.deviceType];
+            keysFound.push(DeviceExtensionKeys.deviceType);
+        }
+
+        if (item.tags[UnmappedKeys.deviceOSVersion]) {
+            env.tags[CtxTagKeys.deviceOSVersion] = item.tags[UnmappedKeys.deviceOSVersion];
+            tagKeysfound.push(UnmappedKeys.deviceOSVersion);
+        }
+
+        if (item.tags[WebExtensionKeys.screenRes]) {
+            env.tags[CtxTagKeys.deviceScreenResolution] = item.tags[WebExtensionKeys.screenRes];
+            tagKeysfound.push(WebExtensionKeys.screenRes);
+        }
+
+        if (item.tags[SampleRate]) {
+            env.tags.sampleRate = item.tags[SampleRate];
+            tagKeysfound.push(SampleRate);
+        }
+
+        if (item.tags[CtxTagKeys.locationIp]) {
+            env.tags[CtxTagKeys.locationIp] = item.tags[CtxTagKeys.locationIp];
+            tagKeysfound.push(CtxTagKeys.locationIp);
+        }
+
+        if (item.tags[CtxTagKeys.internalSdkVersion]) {
+            env.tags[CtxTagKeys.internalSdkVersion] = item.tags[CtxTagKeys.internalSdkVersion];
+            tagKeysfound.push(CtxTagKeys.internalSdkVersion);
+        }
+
+        if (item.tags[CtxTagKeys.internalAgentVersion]) {
+            env.tags[CtxTagKeys.internalAgentVersion] = item.tags[CtxTagKeys.internalAgentVersion];
+            tagKeysfound.push(CtxTagKeys.internalAgentVersion);
+        }
+
+        if (item.tags[CtxTagKeys.operationRootId]) {
+            env.tags[CtxTagKeys.operationRootId] = item.tags[CtxTagKeys.operationRootId];
+            tagKeysfound.push(CtxTagKeys.operationRootId);
+        }
+
+        if (item.tags[CtxTagKeys.operationSyntheticSource]) {
+            env.tags[CtxTagKeys.operationSyntheticSource] =  item.tags[CtxTagKeys.operationSyntheticSource];
+            tagKeysfound.push(CtxTagKeys.operationSyntheticSource);
+        }
+                
+        if (item.tags[CtxTagKeys.operationParentId]) {
+            env.tags[CtxTagKeys.operationParentId] = item.tags[CtxTagKeys.operationParentId];
+            tagKeysfound.push(CtxTagKeys.operationParentId);
+        }
+
+        if (item.tags[CtxTagKeys.operationName]) {
+            env.tags[CtxTagKeys.operationName] = item.tags[CtxTagKeys.operationName];
+            tagKeysfound.push(CtxTagKeys.operationName);
+        }
+
+        if (item.tags[CtxTagKeys.operationId]) {
+            env.tags[CtxTagKeys.operationId] = item.tags[CtxTagKeys.operationId];
+            tagKeysfound.push(CtxTagKeys.operationId);
+        }
+
+        item.tags.forEach(tag => {
+            for (let key in tag) {
+                if (tag.hasOwnProperty(key)) {
+                    if (tagKeysfound.indexOf(tag) < 0) {
+                        if (ContextTagKeys.indexOf(key) >= 0) {
+                                env.tags[key] = tag[key];
+                            }
+                        }
+                    }
+                }
         });
     }
 }
@@ -182,11 +312,11 @@ export class DependencyEnvelopeCreator extends EnvelopeCreator {
 
         let id = bd.id;
         let absoluteUrl = bd.absoluteUrl;
-        let command = bd.commandName;
+        let command = bd.type;
         let duration = bd.duration;
         let success = bd.success;
-        let resultCode = bd.resultCode;
-        let method = bd.method;
+        let resultCode = bd.responseCode;
+        let method = bd.properties[HttpMethod] || "GET";
         let baseData = new RemoteDependencyData(logger, id, absoluteUrl, command, duration, success, resultCode, method, customProperties, customMeasurements);
         let data = new Data<RemoteDependencyData>(RemoteDependencyData.dataType, baseData);
         return EnvelopeCreator.createEnvelope<RemoteDependencyData>(logger, RemoteDependencyData.envelopeType, telemetryItem, data);
@@ -358,7 +488,7 @@ export class TraceEnvelopeCreator extends EnvelopeCreator {
         let message = telemetryItem.baseData.message;
         let severityLevel = telemetryItem.baseData.severityLevel;
         let customProperties = EnvelopeCreator.extractProperties(telemetryItem.data);
-        let baseData = new Trace(logger, message, customProperties, severityLevel);
+        let baseData = new Trace(logger, message, severityLevel, customProperties);
         let data = new Data<Trace>(Trace.dataType, baseData);
         return EnvelopeCreator.createEnvelope<Trace>(logger, Trace.envelopeType, telemetryItem, data);
     }

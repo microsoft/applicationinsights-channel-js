@@ -19,7 +19,8 @@ import {
     Trace, Exception, Metric,
     PageViewPerformance, RemoteDependencyData,
     IChannelControlsAI,
-    ConfigurationManager, IConfig
+    ConfigurationManager, IConfig,
+    ProcessLegacy
 } from '@microsoft/applicationinsights-common';
 import {
     ITelemetryPlugin, ITelemetryItem, IConfiguration,
@@ -175,10 +176,21 @@ export class Sender implements IChannelControlsAI {
             }
 
             // construct an envelope that Application Insights endpoint can understand
-            let aiEnvelope = this._constructEnvelope(telemetryItem);
+            let aiEnvelope = Sender.constructEnvelope(telemetryItem, this._config.instrumentationKey(), this._logger);
             if (!aiEnvelope) {
                 this._logger.throwInternal(LoggingSeverity.CRITICAL, _InternalMessageId.CreateEnvelopeError, "Unable to create an AppInsights envelope");
                 return;
+            }
+
+            if (telemetryItem.tags[ProcessLegacy]) {
+                telemetryItem.tags[ProcessLegacy].forEach((callBack: (env: IEnvelope) => boolean | void) => {
+                    if (callBack(aiEnvelope) === false) {
+                        this._logger.warnToConsole("Telemetry processor check returns false");
+                        return;
+                    }
+                });
+
+                delete telemetryItem.tags[ProcessLegacy];
             }
 
             // check if the incoming payload is too large, truncate if necessary
@@ -382,12 +394,12 @@ export class Sender implements IChannelControlsAI {
         }
     }
 
-    public _constructEnvelope(orig: ITelemetryItem): IEnvelope {
+    public static constructEnvelope(orig: ITelemetryItem, iKey: string, logger: IDiagnosticLogger): IEnvelope {
         let envelope: ITelemetryItem;
-        if (this._config.instrumentationKey() !== orig.instrumentationKey && !CoreUtils.isNullOrUndefined(this._config.instrumentationKey())) {
+        if (iKey !== orig.instrumentationKey && !CoreUtils.isNullOrUndefined(iKey)) {
             envelope = {
                 ...orig,
-                instrumentationKey: this._config.instrumentationKey()
+                instrumentationKey: iKey
             };
         } else {
             envelope = orig;
@@ -395,22 +407,22 @@ export class Sender implements IChannelControlsAI {
 
         switch (envelope.baseType) {
             case Event.dataType:
-                return EventEnvelopeCreator.EventEnvelopeCreator.Create(this._logger, envelope);
+                return EventEnvelopeCreator.EventEnvelopeCreator.Create(logger, envelope);
             case Trace.dataType:
-                return TraceEnvelopeCreator.TraceEnvelopeCreator.Create(this._logger, envelope);
+                return TraceEnvelopeCreator.TraceEnvelopeCreator.Create(logger, envelope);
             case PageView.dataType:
-                return PageViewEnvelopeCreator.PageViewEnvelopeCreator.Create(this._logger, envelope);
+                return PageViewEnvelopeCreator.PageViewEnvelopeCreator.Create(logger, envelope);
             case PageViewPerformance.dataType:
-                return PageViewPerformanceEnvelopeCreator.PageViewPerformanceEnvelopeCreator.Create(this._logger, envelope);
+                return PageViewPerformanceEnvelopeCreator.PageViewPerformanceEnvelopeCreator.Create(logger, envelope);
             case Exception.dataType:
-                return ExceptionEnvelopeCreator.ExceptionEnvelopeCreator.Create(this._logger, envelope);
+                return ExceptionEnvelopeCreator.ExceptionEnvelopeCreator.Create(logger, envelope);
             case Metric.dataType:
-                return MetricEnvelopeCreator.MetricEnvelopeCreator.Create(this._logger, envelope);
+                return MetricEnvelopeCreator.MetricEnvelopeCreator.Create(logger, envelope);
             case RemoteDependencyData.dataType:
-                return DependencyEnvelopeCreator.DependencyEnvelopeCreator.Create(this._logger, envelope);
+                return DependencyEnvelopeCreator.DependencyEnvelopeCreator.Create(logger, envelope);
             default:
                 // default create custom event type
-                return EventEnvelopeCreator.EventEnvelopeCreator.Create(this._logger, envelope);
+                return EventEnvelopeCreator.EventEnvelopeCreator.Create(logger, envelope);
         }
     }
 
