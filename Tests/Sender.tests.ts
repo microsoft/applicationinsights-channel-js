@@ -1,15 +1,15 @@
 /// <reference path="./TestFramework/Common.ts" />
 import { Sender } from "../src/Sender";
 import { Offline } from '../src/Offline';
-import { partAExtensions } from "@microsoft/applicationinsights-common";
 import { ITelemetryItem, AppInsightsCore } from "@microsoft/applicationinsights-core-js";
 
 export class SenderTests extends TestClass {
     private _sender: Sender;
+    private _instrumentationKey = 'iKey';
 
     public testInitialize() {
         this._sender = new Sender();
-        this._sender.initialize({ instrumentationKey: 'iKey' }, new AppInsightsCore(), []);
+        this._sender.initialize({ instrumentationKey: this._instrumentationKey }, new AppInsightsCore(), []);
     }
 
     public testCleanup() {
@@ -68,7 +68,7 @@ export class SenderTests extends TestClass {
                         "name": "Event Name"
                     }
                 };
-                let appInsightsEnvelope = this._sender._constructEnvelope(inputEnvelope);
+                let appInsightsEnvelope = Sender.constructEnvelope(inputEnvelope, this._instrumentationKey, null);
 
                 let baseData = appInsightsEnvelope.data.baseData;
 
@@ -148,7 +148,7 @@ export class SenderTests extends TestClass {
                 };
 
                 // Act
-                let appInsightsEnvelope = this._sender._constructEnvelope(inputEnvelope);
+                let appInsightsEnvelope = Sender.constructEnvelope(inputEnvelope, this._instrumentationKey, null);
                 let baseData = appInsightsEnvelope.data.baseData;
 
                 // Assert duration
