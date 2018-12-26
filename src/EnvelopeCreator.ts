@@ -4,7 +4,7 @@ import {
     Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry,
     IPageViewPerformanceTelemetry, IPageViewTelemetry, CtxTagKeys,
     UnmappedKeys, AppExtensionKeys, DeviceExtensionKeys, 
-    IngestExtKeys, WebExtensionKeys, OSExtKeys, HttpMethod
+    IngestExtKeys, WebExtensionKeys, OSExtKeys, HttpMethod, UserExtensionKeys
 } from '@microsoft/applicationinsights-common';
 import {
     ITelemetryItem, CoreUtils,
@@ -154,6 +154,16 @@ export abstract class EnvelopeCreator {
         if (item.tags[UnmappedKeys.applicationBuild]) {
             env.tags[CtxTagKeys.applicationBuild] = item.tags[UnmappedKeys.applicationBuild];
             tagKeysfound.push(UnmappedKeys.applicationBuild);
+        }
+
+        if (item.ctx[UserExtensionKeys.authId]) {
+            env.tags[CtxTagKeys.userAuthUserId] = item.ctx[UserExtensionKeys.authId];
+            tagKeysfound.push(UserExtensionKeys.authId);
+        }
+
+        if (item.ctx[UserExtensionKeys.localId]) {
+            env.tags[CtxTagKeys.userId] = item.ctx[UserExtensionKeys.localId];
+            tagKeysfound.push(UserExtensionKeys.localId);
         }
 
         if (item.ctx[AppExtensionKeys.sessionId]) {
