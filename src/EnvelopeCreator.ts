@@ -439,7 +439,7 @@ export class PageViewEnvelopeCreator extends EnvelopeCreator {
 
         // isLoggedIn is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
         if (!CoreUtils.isNullOrUndefined(bd.isLoggedIn)) {
-            properties["isLoggedIn"] = bd.isLoggedIn;
+            properties["isLoggedIn"] = bd.isLoggedIn.toString();
         }
 
         // pageTags is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property

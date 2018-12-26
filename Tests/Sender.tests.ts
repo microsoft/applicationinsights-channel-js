@@ -242,7 +242,7 @@ export class SenderTests extends TestClass {
                 };
 
                 // Act
-                let appInsightsEnvelope = this._sender._constructEnvelope(inputEnvelope);
+                let appInsightsEnvelope = Sender.constructEnvelope(inputEnvelope, this._instrumentationKey, null);
                 let baseData = appInsightsEnvelope.data.baseData;
 
                 Assert.equal(-1, JSON.stringify(baseData).indexOf("property3"), "ExceptionData: searching: customProperties (item.data) are not added to telemetry envelope")

@@ -689,6 +689,14 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
                 env.tags[applicationinsights_common_2.CtxTagKeys.applicationBuild] = item.tags[applicationinsights_common_2.UnmappedKeys.applicationBuild];
                 tagKeysfound.push(applicationinsights_common_2.UnmappedKeys.applicationBuild);
             }
+            if (item.ctx[applicationinsights_common_2.UserExtensionKeys.authId]) {
+                env.tags[applicationinsights_common_2.CtxTagKeys.userAuthUserId] = item.ctx[applicationinsights_common_2.UserExtensionKeys.authId];
+                tagKeysfound.push(applicationinsights_common_2.UserExtensionKeys.authId);
+            }
+            if (item.ctx[applicationinsights_common_2.UserExtensionKeys.localId]) {
+                env.tags[applicationinsights_common_2.CtxTagKeys.userId] = item.ctx[applicationinsights_common_2.UserExtensionKeys.localId];
+                tagKeysfound.push(applicationinsights_common_2.UserExtensionKeys.localId);
+            }
             if (item.ctx[applicationinsights_common_2.AppExtensionKeys.sessionId]) {
                 env.tags[applicationinsights_common_2.CtxTagKeys.sessionId] = item.ctx[applicationinsights_common_2.AppExtensionKeys.sessionId];
                 keysFound.push(applicationinsights_common_2.AppExtensionKeys.sessionId);
@@ -868,12 +876,11 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
             if (applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
                 this._logger.throwInternal(applicationinsights_core_js_2.LoggingSeverity.CRITICAL, applicationinsights_core_js_2._InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
             }
-            var customProperties = {};
-            var customMeasurements = {};
-            EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
+            var properties = telemetryItem.baseData.properties;
+            var measurements = telemetryItem.baseData.measurements;
             var exception = telemetryItem.baseData.error;
             var severityLevel = telemetryItem.baseData.severityLevel;
-            var baseData = new applicationinsights_common_2.Exception(logger, exception, customProperties, customMeasurements, severityLevel);
+            var baseData = new applicationinsights_common_2.Exception(logger, exception, properties, measurements, severityLevel);
             var data = new applicationinsights_common_2.Data(applicationinsights_common_2.Exception.dataType, baseData);
             return EnvelopeCreator.createEnvelope(logger, applicationinsights_common_2.Exception.envelopeType, telemetryItem, data);
         };
@@ -917,40 +924,38 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
             }
             // Since duration is not part of the domain properties in Common Schema, extract it from part C
             var duration = undefined;
-            if (!applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(telemetryItem.data) &&
-                !applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(telemetryItem.data.duration)) {
-                duration = telemetryItem.data.duration;
-                delete telemetryItem.data.duration;
+            if (!applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(telemetryItem.baseData) &&
+                !applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(telemetryItem.baseData.measurements)) {
+                duration = telemetryItem.baseData.measurements.duration;
+                delete telemetryItem.baseData.measurements.duration;
             }
-            var customProperties = {};
-            var customMeasurements = {};
-            EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
             var bd = telemetryItem.baseData;
             var name = bd.name;
             var url = bd.uri;
-            // Todo: move IPageViewTelemetry to common as we are missing type checks on baseData here
+            var properties = bd.properties || {};
+            var measurements = bd.measurements || {};
             // refUri is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
             if (!applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(bd.refUri)) {
-                customProperties["refUri"] = bd.refUri;
+                properties["refUri"] = bd.refUri;
             }
             // pageType is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
             if (!applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(bd.pageType)) {
-                customProperties["pageType"] = bd.pageType;
+                properties["pageType"] = bd.pageType;
             }
             // isLoggedIn is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
             if (!applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(bd.isLoggedIn)) {
-                customProperties["isLoggedIn"] = bd.isLoggedIn;
+                properties["isLoggedIn"] = bd.isLoggedIn.toString();
             }
             // pageTags is a field that Breeze still does not recognize as part of Part B. For now, put it in Part C until it supports it as a domain property
             if (!applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(bd.properties)) {
                 var pageTags = bd.properties;
                 for (var key in pageTags) {
                     if (pageTags.hasOwnProperty(key)) {
-                        customProperties[key] = pageTags[key];
+                        properties[key] = pageTags[key];
                     }
                 }
             }
-            var baseData = new applicationinsights_common_2.PageView(logger, name, url, duration, customProperties, customMeasurements);
+            var baseData = new applicationinsights_common_2.PageView(logger, name, url, duration, properties, measurements);
             var data = new applicationinsights_common_2.Data(applicationinsights_common_2.PageView.dataType, baseData);
             return EnvelopeCreator.createEnvelope(logger, applicationinsights_common_2.PageView.envelopeType, telemetryItem, data);
         };
@@ -968,13 +973,12 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
             if (applicationinsights_core_js_2.CoreUtils.isNullOrUndefined(telemetryItem.baseData)) {
                 this._logger.throwInternal(applicationinsights_core_js_2.LoggingSeverity.CRITICAL, applicationinsights_core_js_2._InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
             }
-            var customProperties = {};
-            var customMeasurements = {};
-            EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
             var bd = telemetryItem.baseData;
             var name = bd.name;
             var url = bd.url;
-            var baseData = new applicationinsights_common_2.PageViewPerformance(logger, name, url, undefined, customProperties, customMeasurements);
+            var properties = bd.properties;
+            var measurements = bd.measurements;
+            var baseData = new applicationinsights_common_2.PageViewPerformance(logger, name, url, undefined, properties, measurements);
             var data = new applicationinsights_common_2.Data(applicationinsights_common_2.PageViewPerformance.dataType, baseData);
             return EnvelopeCreator.createEnvelope(logger, applicationinsights_common_2.PageViewPerformance.envelopeType, telemetryItem, data);
         };
@@ -1957,7 +1961,7 @@ define("src/Sender", ["require", "exports", "src/SendBuffer", "src/EnvelopeCreat
     }());
     exports.Sender = Sender;
 });
-define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline", "@microsoft/applicationinsights-core-js"], function (require, exports, Sender_1, Offline_2, applicationinsights_core_js_6) {
+define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline", "@microsoft/applicationinsights-common", "@microsoft/applicationinsights-core-js"], function (require, exports, Sender_1, Offline_2, applicationinsights_common_5, applicationinsights_core_js_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var SenderTests = /** @class */ (function (_super) {
@@ -2076,17 +2080,19 @@ define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline",
                             }
                         },
                         tags: [{ "User": { "AccountId": "TestAccountId" } }],
-                        data: {
-                            "property1": "val1",
-                            "measurement1": 50.0,
-                            "measurement2": 1.3,
-                            "property2": "val2",
-                            "duration": 300000
-                        },
                         baseType: "PageviewData",
                         baseData: {
                             "name": "Page View Name",
-                            "uri": "https://fakeUri.com"
+                            "uri": "https://fakeUri.com",
+                            properties: {
+                                "property1": "val1",
+                                "property2": "val2"
+                            },
+                            measurements: {
+                                "measurement1": 50.0,
+                                "measurement2": 1.3,
+                                "duration": 300000
+                            }
                         }
                     };
                     // Act
@@ -2133,6 +2139,46 @@ define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline",
                     Assert.equal("iKey", appInsightsEnvelope.iKey);
                     // Assert timestamp
                     Assert.ok(appInsightsEnvelope.time);
+                }
+            });
+            this.testCase({
+                name: 'Envelope: custom properties are put into envelope',
+                test: function () {
+                    var inputEnvelope = {
+                        name: "test",
+                        timestamp: new Date("2018-06-12"),
+                        instrumentationKey: "iKey",
+                        baseType: applicationinsights_common_5.Exception.dataType,
+                        baseData: {
+                            error: new Error(),
+                            properties: {
+                                "property1": "val1",
+                                "property2": "val2"
+                            },
+                            measurements: {
+                                "measurement1": 50.0,
+                                "measurement2": 1.3
+                            }
+                        },
+                        data: {
+                            "property3": "val3",
+                            "measurement3": 3.0
+                        },
+                        ctx: {
+                            "User": {
+                                "localId": "TestId",
+                                "authId": "AuthenticatedId",
+                                "id": "TestId"
+                            }
+                        },
+                        tags: [{ "User": { "AccountId": "TestAccountId" } }],
+                    };
+                    // Act
+                    var appInsightsEnvelope = Sender_1.Sender.constructEnvelope(inputEnvelope, _this._instrumentationKey, null);
+                    var baseData = appInsightsEnvelope.data.baseData;
+                    Assert.equal(-1, JSON.stringify(baseData).indexOf("property3"), "ExceptionData: searching: customProperties (item.data) are not added to telemetry envelope");
+                    Assert.equal("val1", baseData.properties["property1"], "ExceptionData: properties (item.baseData.properties) are added to telemetry envelope");
+                    Assert.equal(50.0, baseData.measurements["measurement1"], "ExceptionData: measurements (item.baseData.measurements) are added to telemetry envelope");
                 }
             });
             this.testCase({
