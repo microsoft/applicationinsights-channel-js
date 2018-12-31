@@ -322,12 +322,13 @@ export class DependencyEnvelopeCreator extends EnvelopeCreator {
 
         let id = bd.id;
         let absoluteUrl = bd.absoluteUrl;
-        let command = bd.type;
+        let command = bd.name;
+        let requestType = bd.type;
         let duration = bd.duration;
         let success = bd.success;
         let resultCode = bd.responseCode;
         let method = bd.properties ? bd.properties[HttpMethod] : "GET";
-        let baseData = new RemoteDependencyData(logger, id, absoluteUrl, command, duration, success, resultCode, method, customProperties, customMeasurements);
+        let baseData = new RemoteDependencyData(logger, id, absoluteUrl, command, duration, success, resultCode, method, requestType, customProperties, customMeasurements);
         let data = new Data<RemoteDependencyData>(RemoteDependencyData.dataType, baseData);
         return EnvelopeCreator.createEnvelope<RemoteDependencyData>(logger, RemoteDependencyData.envelopeType, telemetryItem, data);
     }
