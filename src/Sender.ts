@@ -252,7 +252,8 @@ export class Sender implements IChannelControlsAI {
                 } else {
                     this._onError(payload, this._formatErrorMessageXhr(xhr));
                 }
-            } else if (xhr.status === 0 || Offline.isOffline()) { // offline
+            } else if (Offline.isOffline()) { // offline 
+                // Note: Don't check for staus == 0, since adblock gives this code
                 if (!this._config.isRetryDisabled()) {
                     const offlineBackOffMultiplier = 10; // arbritrary number
                     this._resendPayload(payload, offlineBackOffMultiplier);
