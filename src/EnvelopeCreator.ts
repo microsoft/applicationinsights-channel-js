@@ -3,7 +3,7 @@ import {
     RemoteDependencyData, Event, Exception,
     Metric, PageView, Trace, PageViewPerformance, IDependencyTelemetry,
     IPageViewPerformanceTelemetry, IPageViewTelemetry, CtxTagKeys,
-    UnmappedKeys, AppExtensionKeys, DeviceExtensionKeys, 
+    UnmappedKeys, AppExtensionKeys, DeviceExtensionKeys,
     IngestExtKeys, WebExtensionKeys, OSExtKeys, HttpMethod, UserExtensionKeys
 } from '@microsoft/applicationinsights-common';
 import {
@@ -113,8 +113,8 @@ export abstract class EnvelopeCreator {
     // TODO: Do we want this to take logger as arg or use this._logger as nonstatic?
     protected static createEnvelope<T>(logger: IDiagnosticLogger, envelopeType: string, telemetryItem: ITelemetryItem, data: Data<T>): IEnvelope {
         let envelope = new Envelope(logger, data, envelopeType);
-        envelope.iKey = telemetryItem.instrumentationKey;
-        let iKeyNoDashes = telemetryItem.instrumentationKey.replace(/-/g, "");
+        envelope.iKey = telemetryItem.ikey;
+        let iKeyNoDashes = telemetryItem.ikey.replace(/-/g, "");
         envelope.name = envelope.name.replace("{0}", iKeyNoDashes);
 
         // extract all extensions from ctx
@@ -141,7 +141,7 @@ export abstract class EnvelopeCreator {
         if (!item.ctx) {
             item.ctx = {};
         }
-        
+
         if (!item.tags) {
             item.tags = [];
         }
@@ -270,7 +270,7 @@ export abstract class EnvelopeCreator {
             env.tags[CtxTagKeys.operationSyntheticSource] =  item.tags[CtxTagKeys.operationSyntheticSource];
             tagKeysfound.push(CtxTagKeys.operationSyntheticSource);
         }
-                
+
         if (item.tags[CtxTagKeys.operationParentId]) {
             env.tags[CtxTagKeys.operationParentId] = item.tags[CtxTagKeys.operationParentId];
             tagKeysfound.push(CtxTagKeys.operationParentId);

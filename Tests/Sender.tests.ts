@@ -49,8 +49,8 @@ export class SenderTests extends TestClass {
             test: () => {
                 let inputEnvelope: ITelemetryItem = {
                     name: "test",
-                    timestamp: new Date("2018-06-12"),
-                    instrumentationKey: "iKey",
+                    time: new Date("2018-06-12").toISOString(),
+                    ikey: "iKey",
                     ctx: {
                         "ai.session.id": "d041d2e5fa834b4f9eee41ac163bf402",
                         "ai.device.id": "browser",
@@ -124,8 +124,8 @@ export class SenderTests extends TestClass {
                 // setup
                 let inputEnvelope: ITelemetryItem = {
                     name: "test",
-                    timestamp: new Date("2018-06-12"),
-                    instrumentationKey: "iKey",
+                    time: new Date("2018-06-12").toISOString(),
+                    ikey: "iKey",
                     ctx: {
                         "User": {
                             "localId": "TestId",
@@ -213,8 +213,8 @@ export class SenderTests extends TestClass {
             test: () => {
                 const inputEnvelope: ITelemetryItem = {
                     name: "test",
-                    timestamp: new Date("2018-06-12"),
-                    instrumentationKey: "iKey",
+                    time: new Date("2018-06-12").toISOString(),
+                    ikey: "iKey",
                     baseType: Exception.dataType,
                     baseData: {
                         error: new Error(),
