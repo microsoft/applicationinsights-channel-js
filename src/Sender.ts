@@ -397,10 +397,10 @@ export class Sender implements IChannelControlsAI {
 
     public static constructEnvelope(orig: ITelemetryItem, iKey: string, logger: IDiagnosticLogger): IEnvelope {
         let envelope: ITelemetryItem;
-        if (iKey !== orig.ikey && !CoreUtils.isNullOrUndefined(iKey)) {
+        if (iKey !== orig.iKey && !CoreUtils.isNullOrUndefined(iKey)) {
             envelope = {
                 ...orig,
-                ikey: iKey
+                iKey: iKey
             };
         } else {
             envelope = orig;

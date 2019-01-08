@@ -113,8 +113,8 @@ export abstract class EnvelopeCreator {
     // TODO: Do we want this to take logger as arg or use this._logger as nonstatic?
     protected static createEnvelope<T>(logger: IDiagnosticLogger, envelopeType: string, telemetryItem: ITelemetryItem, data: Data<T>): IEnvelope {
         let envelope = new Envelope(logger, data, envelopeType);
-        envelope.iKey = telemetryItem.ikey;
-        let iKeyNoDashes = telemetryItem.ikey.replace(/-/g, "");
+        envelope.iKey = telemetryItem.iKey;
+        let iKeyNoDashes = telemetryItem.iKey.replace(/-/g, "");
         envelope.name = envelope.name.replace("{0}", iKeyNoDashes);
 
         // extract all extensions from ctx
