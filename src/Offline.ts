@@ -16,22 +16,29 @@ export class OfflineListener {
     }
 
     constructor() {
-        if (typeof window === 'undefined') {
-            this.isListening = false;
-        } else if (window && window.addEventListener) {
-            window.addEventListener('online', this._setOnline.bind(this), false);
-            window.addEventListener('offline', this._setOffline.bind(this), false);
-            this.isListening = true;
-        } else if (document && document.body) {
-            (<any>document.body).ononline = this._setOnline.bind(this);
-            (<any>document.body).onoffline = this._setOffline.bind(this)
-            this.isListening = true;
-        } else if (document){
-            (<any>document).ononline = this._setOnline.bind(this);
-            (<any>document).onoffline = this._setOffline.bind(this)
-            this.isListening = true;
-        } else {
-            // Could not find a place to add event listener
+        try
+        {
+            if (typeof window === 'undefined') {
+                this.isListening = false;
+            } else if (window && window.addEventListener) {
+                window.addEventListener('online', this._setOnline.bind(this), false);
+                window.addEventListener('offline', this._setOffline.bind(this), false);
+                this.isListening = true;
+            } else if (document && document.body) {
+                (<any>document.body).ononline = this._setOnline.bind(this);
+                (<any>document.body).onoffline = this._setOffline.bind(this)
+                this.isListening = true;
+            } else if (document){
+                (<any>document).ononline = this._setOnline.bind(this);
+                (<any>document).onoffline = this._setOffline.bind(this)
+                this.isListening = true;
+            } else {
+                // Could not find a place to add event listener
+                this.isListening = false;
+            }
+        } catch (e) {
+
+            //this makes react-native less angry
             this.isListening = false;
         }
     }

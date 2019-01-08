@@ -116,7 +116,7 @@ export class Sender implements IChannelControlsAI {
         this.identifier = "AppInsightsChannelPlugin"
     }
 
-    public initialize(config: IConfiguration & IConfig, core: IAppInsightsCore, extensions: IPlugin[]) :void {
+    public initialize(config: IConfiguration & IConfig, core: IAppInsightsCore, extensions: IPlugin[], request: XMLHttpRequest) :void {
         this._logger = core.logger;
         this._serializer = new Serializer(core.logger);
 
@@ -130,20 +130,18 @@ export class Sender implements IChannelControlsAI {
             this._config[field] = () => ConfigurationManager.getConfig(config, field, this.identifier, defaultConfig[field]());
         }
 
-        this._buffer = (Util.canUseSessionStorage() && this._config.enableSessionStorageBuffer)
+        this._buffer = (this._config.enableSessionStorageBuffer && Util.canUseSessionStorage())
             ? new SessionStorageSendBuffer(this._logger, this._config) : new ArraySendBuffer(this._config);
 
         if (!this._config.isBeaconApiDisabled() && Util.IsBeaconApiSupported()) {
             this._sender = this._beaconSender;
         } else {
-            if (typeof XMLHttpRequest != "undefined") {
-                var testXhr = new XMLHttpRequest();
-                if ("withCredentials" in testXhr) {
-                    this._sender = this._xhrSender;
-                    this._XMLHttpRequestSupported = true;
-                } else if (typeof XDomainRequest !== "undefined") {
-                    this._sender = this._xdrSender; //IE 8 and 9
-                }
+            var testXhr = request || new XMLHttpRequest();
+            if ("withCredentials" in testXhr) {
+                this._sender = this._xhrSender;
+                this._XMLHttpRequestSupported = true;
+            } else if (typeof XDomainRequest !== "undefined") {
+                this._sender = this._xdrSender; //IE 8 and 9
             }
         }
     }
