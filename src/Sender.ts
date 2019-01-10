@@ -116,7 +116,7 @@ export class Sender implements IChannelControlsAI {
         this.identifier = "AppInsightsChannelPlugin"
     }
 
-    public initialize(config: IConfiguration & IConfig, core: IAppInsightsCore, extensions: IPlugin[], request: XMLHttpRequest) :void {
+    public initialize(config: IConfiguration & IConfig, core: IAppInsightsCore, extensions: IPlugin[]) :void {
         this._logger = core.logger;
         this._serializer = new Serializer(core.logger);
 
@@ -136,7 +136,7 @@ export class Sender implements IChannelControlsAI {
         if (!this._config.isBeaconApiDisabled() && Util.IsBeaconApiSupported()) {
             this._sender = this._beaconSender;
         } else {
-            var testXhr = request || new XMLHttpRequest();
+            var testXhr = new XMLHttpRequest();
             if ("withCredentials" in testXhr) {
                 this._sender = this._xhrSender;
                 this._XMLHttpRequestSupported = true;
