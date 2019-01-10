@@ -250,7 +250,7 @@ export class Sender implements IChannelControlsAI {
                 } else {
                     this._onError(payload, this._formatErrorMessageXhr(xhr));
                 }
-            } else if (Offline.isOffline()) { // offline 
+            } else if (Offline.isOffline()) { // offline
                 // Note: Don't check for staus == 0, since adblock gives this code
                 if (!this._config.isRetryDisabled()) {
                     const offlineBackOffMultiplier = 10; // arbritrary number
@@ -395,10 +395,10 @@ export class Sender implements IChannelControlsAI {
 
     public static constructEnvelope(orig: ITelemetryItem, iKey: string, logger: IDiagnosticLogger): IEnvelope {
         let envelope: ITelemetryItem;
-        if (iKey !== orig.instrumentationKey && !CoreUtils.isNullOrUndefined(iKey)) {
+        if (iKey !== orig.iKey && !CoreUtils.isNullOrUndefined(iKey)) {
             envelope = {
                 ...orig,
-                instrumentationKey: iKey
+                iKey: iKey
             };
         } else {
             envelope = orig;
