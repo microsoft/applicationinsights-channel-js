@@ -136,12 +136,14 @@ export class Sender implements IChannelControlsAI {
         if (!this._config.isBeaconApiDisabled() && Util.IsBeaconApiSupported()) {
             this._sender = this._beaconSender;
         } else {
-            var testXhr = new XMLHttpRequest();
-            if ("withCredentials" in testXhr) {
-                this._sender = this._xhrSender;
-                this._XMLHttpRequestSupported = true;
-            } else if (typeof XDomainRequest !== "undefined") {
-                this._sender = this._xdrSender; //IE 8 and 9
+            if (typeof XMLHttpRequest != "undefined") {
+                var testXhr = new XMLHttpRequest();
+                if ("withCredentials" in testXhr) {
+                    this._sender = this._xhrSender;
+                    this._XMLHttpRequestSupported = true;
+                } else if (typeof XDomainRequest !== "undefined") {
+                    this._sender = this._xdrSender; //IE 8 and 9
+                }
             }
         }
     }
