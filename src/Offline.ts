@@ -16,8 +16,7 @@ export class OfflineListener {
     }
 
     constructor() {
-        try
-        {
+        try {
             if (typeof window === 'undefined') {
                 this.isListening = false;
             } else if (window && window.addEventListener) {
