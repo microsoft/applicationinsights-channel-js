@@ -182,7 +182,7 @@ export class Sender implements IChannelControlsAI {
                 return;
             }
 
-            if (telemetryItem.tags[ProcessLegacy]) {
+            if (telemetryItem.tags && telemetryItem.tags[ProcessLegacy]) {
                 telemetryItem.tags[ProcessLegacy].forEach((callBack: (env: IEnvelope) => boolean | void) => {
                     if (callBack(aiEnvelope) === false) {
                         this._logger.warnToConsole("Telemetry processor check returns false");

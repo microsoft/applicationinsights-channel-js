@@ -45,6 +45,30 @@ export class SenderTests extends TestClass {
         });
 
         this.testCase({
+            name: "processTelemetry can be called with optional fields undefined",
+            test: () => {
+                this._sender.initialize({
+                    instrumentationKey: 'abc'
+                }, new AppInsightsCore(), []);
+
+                const loggerSpy = this.sandbox.stub(this._sender, "_setupTimer");
+                const telemetryItem: ITelemetryItem = {
+                    name: 'fake item',
+                    iKey: 'iKey',
+                    baseType: 'some type',
+                    baseData: {}
+                };
+                try {
+                    this._sender.processTelemetry(telemetryItem);
+                } catch(e) {
+                    Assert.ok(false);
+                }
+
+                Assert.ok(loggerSpy.calledOnce);
+            }
+        })
+
+        this.testCase({
             name: "AppInsightsTests: AppInsights Envelope created for Custom Event",
             test: () => {
                 let inputEnvelope: ITelemetryItem = {
