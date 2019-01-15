@@ -130,7 +130,7 @@ export class Sender implements IChannelControlsAI {
             this._config[field] = () => ConfigurationManager.getConfig(config, field, this.identifier, defaultConfig[field]());
         }
 
-        this._buffer = (Util.canUseSessionStorage() && this._config.enableSessionStorageBuffer)
+        this._buffer = (this._config.enableSessionStorageBuffer && Util.canUseSessionStorage())
             ? new SessionStorageSendBuffer(this._logger, this._config) : new ArraySendBuffer(this._config);
 
         if (!this._config.isBeaconApiDisabled() && Util.IsBeaconApiSupported()) {
