@@ -182,6 +182,7 @@ export class Sender implements IChannelControlsAI {
                 return;
             }
 
+            // this is for running in legacy mode, where customer may already have a custom initializer present
             if (telemetryItem.tags && telemetryItem.tags[ProcessLegacy]) {
                 telemetryItem.tags[ProcessLegacy].forEach((callBack: (env: IEnvelope) => boolean | void) => {
                     if (callBack(aiEnvelope) === false) {
