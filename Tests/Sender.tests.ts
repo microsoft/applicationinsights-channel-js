@@ -2,7 +2,7 @@
 import { Sender } from "../src/Sender";
 import { Offline } from '../src/Offline';
 import { Exception } from "@microsoft/applicationinsights-common";
-import { ITelemetryItem, AppInsightsCore } from "@microsoft/applicationinsights-core-js";
+import { ITelemetryItem, AppInsightsCore, ITelemetryPlugin, DiagnosticLogger } from "@microsoft/applicationinsights-core-js";
 
 export class SenderTests extends TestClass {
     private _sender: Sender;
@@ -43,6 +43,68 @@ export class SenderTests extends TestClass {
                 Assert.equal(456, this._sender._config.maxBatchSizeInBytes(), 'Channel config prioritizes extensionConfig over root config');
             }
         });
+
+        this.testCase({
+            name: "processTelemetry can be called with optional fields undefined",
+            test: () => {
+                this._sender.initialize({
+                    instrumentationKey: 'abc'
+                }, new AppInsightsCore(), []);
+
+                const loggerSpy = this.sandbox.stub(this._sender, "_setupTimer");
+                const telemetryItem: ITelemetryItem = {
+                    name: 'fake item',
+                    iKey: 'iKey',
+                    baseType: 'some type',
+                    baseData: {}
+                };
+                try {
+                    this._sender.processTelemetry(telemetryItem);
+                } catch(e) {
+                    Assert.ok(false);
+                }
+
+                Assert.ok(loggerSpy.calledOnce);
+            }
+        })
+
+        this.testCase({
+            name: "telemetry is not send when legacy telemetry initializer returns false",
+            test: () => {
+                let cr = new AppInsightsCore();
+                cr.logger = new DiagnosticLogger({instrumentationKey: "ikey"});
+                this._sender.initialize({
+                    instrumentationKey: 'abc'
+                }, cr, []);
+
+                let nextPlugin = <ITelemetryPlugin> {
+                    identifier: "foo",
+                    processTelemetry: (it) => {},
+                    priority: 200,
+                    setNextPlugin: (it) => {}
+                };
+                this._sender.setNextPlugin(nextPlugin);
+
+                const processTelemetrySpy = this.sandbox.stub((<any>this._sender)._nextPlugin, "processTelemetry");
+                const telemetryItem: ITelemetryItem = {
+                    name: 'fake item',
+                    iKey: 'iKey',
+                    baseType: 'some type',
+                    baseData: {},
+                    tags: [   
+                    ]
+                };
+                
+                telemetryItem.tags["ProcessLegacy"] = [e => true, e => false, f=> true];
+                try {
+                    this._sender.processTelemetry(telemetryItem);
+                } catch(e) {
+                    Assert.ok(false);
+                }
+
+                Assert.ok(!processTelemetrySpy.calledOnce);
+            }
+        })
 
         this.testCase({
             name: "AppInsightsTests: AppInsights Envelope created for Custom Event",

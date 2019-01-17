@@ -655,8 +655,8 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
         // TODO: Do we want this to take logger as arg or use this._logger as nonstatic?
         EnvelopeCreator.createEnvelope = function (logger, envelopeType, telemetryItem, data) {
             var envelope = new applicationinsights_common_2.Envelope(logger, data, envelopeType);
-            envelope.iKey = telemetryItem.instrumentationKey;
-            var iKeyNoDashes = telemetryItem.instrumentationKey.replace(/-/g, "");
+            envelope.iKey = telemetryItem.iKey;
+            var iKeyNoDashes = telemetryItem.iKey.replace(/-/g, "");
             envelope.name = envelope.name.replace("{0}", iKeyNoDashes);
             // extract all extensions from ctx
             EnvelopeCreator.extractPartAExtensions(telemetryItem, envelope);
@@ -827,7 +827,7 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
                 return null;
             }
             var id = bd.id;
-            var absoluteUrl = bd.absoluteUrl;
+            var absoluteUrl = bd.target;
             var command = bd.type;
             var duration = bd.duration;
             var success = bd.success;
@@ -1390,26 +1390,32 @@ define("src/Offline", ["require", "exports"], function (require, exports) {
     var OfflineListener = /** @class */ (function () {
         function OfflineListener() {
             this._onlineStatus = true;
-            if (typeof window === 'undefined') {
-                this.isListening = false;
+            try {
+                if (typeof window === 'undefined') {
+                    this.isListening = false;
+                }
+                else if (window && window.addEventListener) {
+                    window.addEventListener('online', this._setOnline.bind(this), false);
+                    window.addEventListener('offline', this._setOffline.bind(this), false);
+                    this.isListening = true;
+                }
+                else if (document && document.body) {
+                    document.body.ononline = this._setOnline.bind(this);
+                    document.body.onoffline = this._setOffline.bind(this);
+                    this.isListening = true;
+                }
+                else if (document) {
+                    document.ononline = this._setOnline.bind(this);
+                    document.onoffline = this._setOffline.bind(this);
+                    this.isListening = true;
+                }
+                else {
+                    // Could not find a place to add event listener
+                    this.isListening = false;
+                }
             }
-            else if (window && window.addEventListener) {
-                window.addEventListener('online', this._setOnline.bind(this), false);
-                window.addEventListener('offline', this._setOffline.bind(this), false);
-                this.isListening = true;
-            }
-            else if (document && document.body) {
-                document.body.ononline = this._setOnline.bind(this);
-                document.body.onoffline = this._setOffline.bind(this);
-                this.isListening = true;
-            }
-            else if (document) {
-                document.ononline = this._setOnline.bind(this);
-                document.onoffline = this._setOffline.bind(this);
-                this.isListening = true;
-            }
-            else {
-                // Could not find a place to add event listener
+            catch (e) {
+                //this makes react-native less angry
                 this.isListening = false;
             }
         }
@@ -1486,7 +1492,7 @@ define("src/Sender", ["require", "exports", "src/SendBuffer", "src/EnvelopeCreat
             for (var field in defaultConfig) {
                 _loop_1(field);
             }
-            this._buffer = (applicationinsights_common_4.Util.canUseSessionStorage() && this._config.enableSessionStorageBuffer)
+            this._buffer = (this._config.enableSessionStorageBuffer && applicationinsights_common_4.Util.canUseSessionStorage())
                 ? new SendBuffer_1.SessionStorageSendBuffer(this._logger, this._config) : new SendBuffer_1.ArraySendBuffer(this._config);
             if (!this._config.isBeaconApiDisabled() && applicationinsights_common_4.Util.IsBeaconApiSupported()) {
                 this._sender = this._beaconSender;
@@ -1534,14 +1540,26 @@ define("src/Sender", ["require", "exports", "src/SendBuffer", "src/EnvelopeCreat
                     this._logger.throwInternal(applicationinsights_core_js_4.LoggingSeverity.CRITICAL, applicationinsights_core_js_4._InternalMessageId.CreateEnvelopeError, "Unable to create an AppInsights envelope");
                     return;
                 }
-                if (telemetryItem.tags[applicationinsights_common_4.ProcessLegacy]) {
+                var doNotSendItem_1 = false;
+                // this is for running in legacy mode, where customer may already have a custom initializer present
+                if (telemetryItem.tags && telemetryItem.tags[applicationinsights_common_4.ProcessLegacy]) {
                     telemetryItem.tags[applicationinsights_common_4.ProcessLegacy].forEach(function (callBack) {
-                        if (callBack(aiEnvelope_1) === false) {
-                            _this._logger.warnToConsole("Telemetry processor check returns false");
-                            return;
+                        try {
+                            if (callBack && callBack(aiEnvelope_1) === false) {
+                                doNotSendItem_1 = true;
+                                _this._logger.warnToConsole("Telemetry processor check returns false");
+                            }
+                        }
+                        catch (e) {
+                            // log error but dont stop executing rest of the telemetry initializers
+                            // doNotSendItem = true;
+                            _this._logger.throwInternal(applicationinsights_core_js_4.LoggingSeverity.CRITICAL, applicationinsights_core_js_4._InternalMessageId.TelemetryInitializerFailed, "One of telemetry initializers failed, telemetry item will not be sent: " + applicationinsights_common_4.Util.getExceptionName(e), { exception: applicationinsights_common_4.Util.dump(e) }, true);
                         }
                     });
                     delete telemetryItem.tags[applicationinsights_common_4.ProcessLegacy];
+                }
+                if (doNotSendItem_1) {
+                    return; // do not send, no need to execute next plugin
                 }
                 // check if the incoming payload is too large, truncate if necessary
                 var payload = this._serializer.serialize(aiEnvelope_1);
@@ -1589,7 +1607,8 @@ define("src/Sender", ["require", "exports", "src/SendBuffer", "src/EnvelopeCreat
                         this._onError(payload, this._formatErrorMessageXhr(xhr));
                     }
                 }
-                else if (xhr.status === 0 || Offline_1.Offline.isOffline()) {
+                else if (Offline_1.Offline.isOffline()) {
+                    // Note: Don't check for staus == 0, since adblock gives this code
                     if (!this._config.isRetryDisabled()) {
                         var offlineBackOffMultiplier = 10; // arbritrary number
                         this._resendPayload(payload, offlineBackOffMultiplier);
@@ -1712,8 +1731,8 @@ define("src/Sender", ["require", "exports", "src/SendBuffer", "src/EnvelopeCreat
         };
         Sender.constructEnvelope = function (orig, iKey, logger) {
             var envelope;
-            if (iKey !== orig.instrumentationKey && !applicationinsights_core_js_5.CoreUtils.isNullOrUndefined(iKey)) {
-                envelope = __assign({}, orig, { instrumentationKey: iKey });
+            if (iKey !== orig.iKey && !applicationinsights_core_js_5.CoreUtils.isNullOrUndefined(iKey)) {
+                envelope = __assign({}, orig, { iKey: iKey });
             }
             else {
                 envelope = orig;
@@ -2002,12 +2021,67 @@ define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline",
                 }
             });
             this.testCase({
+                name: "processTelemetry can be called with optional fields undefined",
+                test: function () {
+                    _this._sender.initialize({
+                        instrumentationKey: 'abc'
+                    }, new applicationinsights_core_js_6.AppInsightsCore(), []);
+                    var loggerSpy = _this.sandbox.stub(_this._sender, "_setupTimer");
+                    var telemetryItem = {
+                        name: 'fake item',
+                        iKey: 'iKey',
+                        baseType: 'some type',
+                        baseData: {}
+                    };
+                    try {
+                        _this._sender.processTelemetry(telemetryItem);
+                    }
+                    catch (e) {
+                        Assert.ok(false);
+                    }
+                    Assert.ok(loggerSpy.calledOnce);
+                }
+            });
+            this.testCase({
+                name: "telemetry is not send when legacy telemetry initializer returns false",
+                test: function () {
+                    var cr = new applicationinsights_core_js_6.AppInsightsCore();
+                    cr.logger = new applicationinsights_core_js_6.DiagnosticLogger({ instrumentationKey: "ikey" });
+                    _this._sender.initialize({
+                        instrumentationKey: 'abc'
+                    }, cr, []);
+                    var nextPlugin = {
+                        identifier: "foo",
+                        processTelemetry: function (it) { },
+                        priority: 200,
+                        setNextPlugin: function (it) { }
+                    };
+                    _this._sender.setNextPlugin(nextPlugin);
+                    var processTelemetrySpy = _this.sandbox.stub(_this._sender._nextPlugin, "processTelemetry");
+                    var telemetryItem = {
+                        name: 'fake item',
+                        iKey: 'iKey',
+                        baseType: 'some type',
+                        baseData: {},
+                        tags: []
+                    };
+                    telemetryItem.tags["ProcessLegacy"] = [function (e) { return true; }, function (e) { return false; }, function (f) { return true; }];
+                    try {
+                        _this._sender.processTelemetry(telemetryItem);
+                    }
+                    catch (e) {
+                        Assert.ok(false);
+                    }
+                    Assert.ok(!processTelemetrySpy.calledOnce);
+                }
+            });
+            this.testCase({
                 name: "AppInsightsTests: AppInsights Envelope created for Custom Event",
                 test: function () {
                     var inputEnvelope = {
                         name: "test",
-                        timestamp: new Date("2018-06-12"),
-                        instrumentationKey: "iKey",
+                        time: new Date("2018-06-12").toISOString(),
+                        iKey: "iKey",
                         ctx: {
                             "ai.session.id": "d041d2e5fa834b4f9eee41ac163bf402",
                             "ai.device.id": "browser",
@@ -2070,8 +2144,8 @@ define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline",
                     // setup
                     var inputEnvelope = {
                         name: "test",
-                        timestamp: new Date("2018-06-12"),
-                        instrumentationKey: "iKey",
+                        time: new Date("2018-06-12").toISOString(),
+                        iKey: "iKey",
                         ctx: {
                             "User": {
                                 "localId": "TestId",
@@ -2146,8 +2220,8 @@ define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline",
                 test: function () {
                     var inputEnvelope = {
                         name: "test",
-                        timestamp: new Date("2018-06-12"),
-                        instrumentationKey: "iKey",
+                        time: new Date("2018-06-12").toISOString(),
+                        iKey: "iKey",
                         baseType: applicationinsights_common_5.Exception.dataType,
                         baseData: {
                             error: new Error(),

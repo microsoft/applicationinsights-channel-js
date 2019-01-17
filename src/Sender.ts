@@ -182,15 +182,28 @@ export class Sender implements IChannelControlsAI {
                 return;
             }
 
-            if (telemetryItem.tags[ProcessLegacy]) {
+            let doNotSendItem = false;
+            // this is for running in legacy mode, where customer may already have a custom initializer present
+            if (telemetryItem.tags && telemetryItem.tags[ProcessLegacy]) {
                 telemetryItem.tags[ProcessLegacy].forEach((callBack: (env: IEnvelope) => boolean | void) => {
-                    if (callBack(aiEnvelope) === false) {
-                        this._logger.warnToConsole("Telemetry processor check returns false");
-                        return;
+                    try {
+                        if (callBack && callBack(aiEnvelope) === false) {
+                            doNotSendItem = true;
+                            this._logger.warnToConsole("Telemetry processor check returns false");
+                        }
+                    } catch (e) {
+                        // log error but dont stop executing rest of the telemetry initializers
+                        // doNotSendItem = true;
+                        this._logger.throwInternal(
+                            LoggingSeverity.CRITICAL, _InternalMessageId.TelemetryInitializerFailed, "One of telemetry initializers failed, telemetry item will not be sent: " + Util.getExceptionName(e),
+                            { exception: Util.dump(e) }, true);
                     }
                 });
 
                 delete telemetryItem.tags[ProcessLegacy];
+            }
+            if (doNotSendItem) {
+                return; // do not send, no need to execute next plugin
             }
 
             // check if the incoming payload is too large, truncate if necessary

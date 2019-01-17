@@ -321,7 +321,7 @@ export class DependencyEnvelopeCreator extends EnvelopeCreator {
         }
 
         let id = bd.id;
-        let absoluteUrl = bd.absoluteUrl;
+        let absoluteUrl = bd.target;
         let command = bd.type;
         let duration = bd.duration;
         let success = bd.success;
