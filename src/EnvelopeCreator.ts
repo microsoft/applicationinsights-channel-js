@@ -326,8 +326,9 @@ export class DependencyEnvelopeCreator extends EnvelopeCreator {
         let duration = bd.duration;
         let success = bd.success;
         let resultCode = bd.responseCode;
+        let requestType = bd.requestType; // fetch vs ajax
         let method = bd.properties ? bd.properties[HttpMethod] : "GET";
-        let baseData = new RemoteDependencyData(logger, id, absoluteUrl, command, duration, success, resultCode, method, customProperties, customMeasurements);
+        let baseData = new RemoteDependencyData(logger, id, absoluteUrl, command, duration, success, resultCode, method, requestType, customProperties, customMeasurements);
         let data = new Data<RemoteDependencyData>(RemoteDependencyData.dataType, baseData);
         return EnvelopeCreator.createEnvelope<RemoteDependencyData>(logger, RemoteDependencyData.envelopeType, telemetryItem, data);
     }
