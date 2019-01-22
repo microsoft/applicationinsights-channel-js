@@ -91,10 +91,10 @@ export class SenderTests extends TestClass {
                     iKey: 'iKey',
                     baseType: 'some type',
                     baseData: {},
-                    tags: [   
+                    tags: [
                     ]
                 };
-                
+
                 telemetryItem.tags["ProcessLegacy"] = [e => true, e => false, f=> true];
                 try {
                     this._sender.processTelemetry(telemetryItem);
@@ -170,6 +170,100 @@ export class SenderTests extends TestClass {
                 // Assert name
                 Assert.ok(appInsightsEnvelope.name);
                 Assert.equal("Microsoft.ApplicationInsights.iKey.Event", appInsightsEnvelope.name);
+
+                // Assert iKey
+                Assert.ok(appInsightsEnvelope.iKey);
+                Assert.equal("iKey", appInsightsEnvelope.iKey);
+
+                // Assert timestamp
+                Assert.ok(appInsightsEnvelope.time);
+            }
+        });
+
+        this.testCase({
+            name: "AppInsightsTests: AppInsights Envelope create for Dependency Data",
+            test: () => {
+                // setup
+                let inputEnvelope: ITelemetryItem = {
+                    name: "test",
+                    time: new Date("2018-06-12").toISOString(),
+                    iKey: "iKey",
+                    ctx: {
+                        "User": {
+                            "localId": "TestId",
+                            "authId": "AuthenticatedId",
+                            "id": "TestId"
+                        }
+                    },
+                    tags: [{"User": {"AccountId": "TestAccountId"} }],
+                    baseType: "RemoteDependencyData",
+                    baseData: {
+                        id: 'some id',
+                        name: "/test/name",
+                        success: true,
+                        responseCode: 200,
+                        duration: 123,
+                        type: 'Fetch',
+                        data: 'some data',
+                        target: 'https://example.com/test/name'
+                    },
+                    data: {
+                        property1: "val1",
+                        property2: "val2",
+                        measurement1: 50.0,
+                        measurement2: 1.3
+                    }
+
+                }
+
+                // act
+                let appInsightsEnvelope = Sender.constructEnvelope(inputEnvelope, this._instrumentationKey, null);
+                let { baseData } = appInsightsEnvelope.data;
+
+                // assert
+                let resultDuration = baseData.duration;
+                Assert.equal("00:00:00.123", resultDuration);
+
+                // Assert measurements
+                let resultMeasurements = baseData.measurements;
+                Assert.ok(resultMeasurements);
+                Assert.ok(resultMeasurements["measurement1"]);
+                Assert.equal(50.0, resultMeasurements["measurement1"]);
+                Assert.ok(resultMeasurements["measurement2"]);
+                Assert.equal(1.3, resultMeasurements["measurement2"]);
+                Assert.ok(!resultMeasurements.duration, "duration is not supposed to be treated as measurement");
+
+                // Assert custom properties
+                Assert.ok(baseData.properties);
+                Assert.equal("val1", baseData.properties["property1"]);
+                Assert.equal("val2", baseData.properties["property2"]);
+
+                // Assert baseData
+                Assert.ok(baseData.name);
+                Assert.equal("/test/name", baseData.data);
+                Assert.equal("some id", baseData.id);
+                Assert.equal(true, baseData.success);
+                Assert.equal(200, baseData.resultCode);
+                Assert.equal("GET /test/name", baseData.name);
+                Assert.equal("example.com", baseData.target);
+
+                // Assert ver
+                Assert.ok(baseData.ver);
+                Assert.equal(2, baseData.ver);
+
+                // Assert baseType
+                Assert.ok(appInsightsEnvelope.data.baseType);
+                Assert.equal("RemoteDependencyData", appInsightsEnvelope.data.baseType);
+
+                // Assert tags
+                Assert.ok(appInsightsEnvelope.tags);
+                Assert.ok("TestAccountId", appInsightsEnvelope.tags["ai.user.accountId"]);
+                Assert.ok("AuthenticatedId", appInsightsEnvelope.tags["ai.user.authUserId"]);
+                Assert.ok("TestId", appInsightsEnvelope.tags["ai.user.id"]);
+
+                // Assert name
+                Assert.ok(appInsightsEnvelope.name);
+                Assert.equal("Microsoft.ApplicationInsights.iKey.RemoteDependency", appInsightsEnvelope.name);
 
                 // Assert iKey
                 Assert.ok(appInsightsEnvelope.iKey);
