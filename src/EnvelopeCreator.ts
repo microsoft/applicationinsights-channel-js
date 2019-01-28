@@ -347,7 +347,10 @@ export class EventEnvelopeCreator extends EnvelopeCreator {
 
         let customProperties = {};
         let customMeasurements = {};
-        if (telemetryItem.baseType !== Event.dataType) { // if its not a known type, its treated as custom event
+        if (telemetryItem.baseType === Event.dataType) { // take collection
+            customProperties = telemetryItem.baseData.properties || {};
+            customMeasurements = telemetryItem.baseData.measurements || {};
+        } else { // if its not a known type, its treated as custom event
             EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.baseData, customProperties, customMeasurements);
         }
 
