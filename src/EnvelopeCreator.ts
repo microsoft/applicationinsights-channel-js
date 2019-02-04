@@ -373,11 +373,7 @@ export class ExceptionEnvelopeCreator extends EnvelopeCreator {
                 _InternalMessageId.TelemetryEnvelopeInvalid, "telemetryItem.baseData cannot be null.");
         }
 
-        let properties = telemetryItem.baseData.properties;
-        let measurements = telemetryItem.baseData.measurements;
-        let exception = telemetryItem.baseData.error;
-        let severityLevel = telemetryItem.baseData.severityLevel;
-        let baseData = new Exception(logger, exception, properties, measurements, severityLevel);
+        let baseData = telemetryItem.baseData as Exception;
         let data = new Data<Exception>(Exception.dataType, baseData);
         return EnvelopeCreator.createEnvelope<Exception>(logger, Exception.envelopeType, telemetryItem, data);
     }
