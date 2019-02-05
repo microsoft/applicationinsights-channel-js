@@ -10,6 +10,8 @@
     "suppressImplicitAnyIndexErrors": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
+    "noEmitHelpers": true,
+    "importHelpers": true,
     "declaration": true,
     "declarationMap": true,
     "declarationDir": "types",
