@@ -35,7 +35,7 @@ declare var XDomainRequest: {
 };
 
 export class Sender implements IChannelControlsAI {
-    public priority: number = 201;
+    public priority: number = 1001;
 
     public identifier: string;
 
