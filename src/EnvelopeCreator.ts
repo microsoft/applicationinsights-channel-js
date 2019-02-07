@@ -102,8 +102,10 @@ export abstract class EnvelopeCreator {
                     let value = data[key];
                     if (typeof value === "number") {
                         measurements[key] = value;
-                    } else {
+                    } else if (typeof value === "string") {
                         properties[key] = value;
+                    } else {
+                        properties[key] = JSON.stringify(value);
                     }
                 }
             }
@@ -350,10 +352,13 @@ export class EventEnvelopeCreator extends EnvelopeCreator {
         if (telemetryItem.baseType === Event.dataType) { // take collection
             customProperties = telemetryItem.baseData.properties || {};
             customMeasurements = telemetryItem.baseData.measurements || {};
-        } else { // if its not a known type, its treated as custom event
-            EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.baseData, customProperties, customMeasurements);
+        } else { // if its not a known type, convert to custom event
+            if (telemetryItem.baseData) {
+                EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.baseData, customProperties, customMeasurements);
+            }
         }
 
+        // Exract root level properties from part C telemetryItem.data
         EnvelopeCreator.extractPropsAndMeasurements(telemetryItem.data, customProperties, customMeasurements);
         let eventName = telemetryItem.baseData.name;
         let baseData = new Event(logger, eventName, customProperties, customMeasurements);

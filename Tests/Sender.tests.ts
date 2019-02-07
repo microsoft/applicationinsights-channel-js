@@ -181,6 +181,64 @@ export class SenderTests extends TestClass {
         });
 
         this.testCase({
+            name: "AppInsightsTests: AppInsights Envelope  unknown type returns custom Event data type",
+            test: () => {
+                let inputEnvelope: ITelemetryItem = {
+                    name: "test",
+                    time: new Date("2018-06-12").toISOString(),
+                    iKey: "iKey",
+                    ctx: {
+                        "ai.session.id": "d041d2e5fa834b4f9eee41ac163bf402",
+                        "ai.device.id": "browser",
+                        "ai.device.type": "Browser",
+                        "ai.internal.sdkVersion": "javascript:1.0.18",
+                    },
+                    tags: [{}],
+                    data: {
+                        "property1": "val1",
+                        "measurement1": 50.0,
+                        "measurement2": 1.3,
+                        "property2": "val2"
+                    },
+                    baseType: "PageUnloadData",
+                    baseData: {
+                        id: "EADE2F09-DEBA-4B60-A222-E1D80BB8AA7F",
+                        vpHeight: 1002,
+                        vScrollOffset: 292
+                    }
+                };
+                let appInsightsEnvelope = Sender.constructEnvelope(inputEnvelope, this._instrumentationKey, null);
+                let baseData = appInsightsEnvelope.data.baseData;
+
+                // Assert measurements
+                let resultMeasurements = baseData.measurements;
+                Assert.ok(resultMeasurements);
+                Assert.ok(resultMeasurements["measurement1"]);
+                Assert.equal(50.0, resultMeasurements["measurement1"]);
+                Assert.ok(resultMeasurements["measurement2"]);
+                Assert.equal(1.3, resultMeasurements["measurement2"]);
+                Assert.ok(resultMeasurements["vpHeight"]);
+                Assert.equal(1002, resultMeasurements["vpHeight"]);
+                Assert.ok(resultMeasurements["vScrollOffset"]);
+                Assert.equal(292, resultMeasurements["vScrollOffset"]);
+
+                // Assert custom properties
+                Assert.ok(baseData.properties);
+                Assert.equal("val1", baseData.properties["property1"]);
+                Assert.equal("val2", baseData.properties["property2"]);
+                Assert.equal("EADE2F09-DEBA-4B60-A222-E1D80BB8AA7F", baseData.properties["id"]);
+
+                // Assert Event name
+                Assert.ok(baseData.name);
+                Assert.equal("PageUnloadData", baseData.name);
+
+                // Assert ver
+                Assert.ok(baseData.ver);
+                Assert.equal(2, baseData.ver);
+            }
+        })
+
+        this.testCase({
             name: "AppInsightsTests: AppInsights Envelope create for Dependency Data",
             test: () => {
                 // setup
@@ -365,7 +423,7 @@ export class SenderTests extends TestClass {
         });
 
         this.testCase({
-            name: 'Envelope: custom properties are put into envelope',
+            name: 'Envelope: custom properties are put into envelope for Exception data type',
             test: () => {
                 const inputEnvelope: ITelemetryItem = {
                     name: "test",
