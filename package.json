@@ -1,6 +1,6 @@
 {
     "name": "@microsoft/applicationinsights-channel-js",
-    "version": "1.0.0-beta.14",
+    "version": "1.0.0-beta.15",
     "description": "Microsoft Application Insights JavaScript SDK Channel",
     "main": "dist/applicationinsights-channel-js.js",
     "module": "dist-esm/applicationinsights-channel-js.js",
