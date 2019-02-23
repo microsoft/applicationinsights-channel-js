@@ -262,30 +262,20 @@ export abstract class EnvelopeCreator {
             env.tags[CtxTagKeys.internalAgentVersion] = item.tags[CtxTagKeys.internalAgentVersion];
             tagKeysfound.push(CtxTagKeys.internalAgentVersion);
         }
+        
+        // No support for mapping Trace.traceState to 2.0 as it is currently empty
 
-        if (item.tags[CtxTagKeys.operationRootId]) {
-            env.tags[CtxTagKeys.operationRootId] = item.tags[CtxTagKeys.operationRootId];
-            tagKeysfound.push(CtxTagKeys.operationRootId);
-        }
+        if (item.ctx["trace"]) {
+            const tr = item.ctx["trace"];
+            if (tr.parentID) {
+                env.tags[CtxTagKeys.operationParentId] = tr.parentID;
+                tagKeysfound.push(CtxTagKeys.operationParentId);
+            }
 
-        if (item.tags[CtxTagKeys.operationSyntheticSource]) {
-            env.tags[CtxTagKeys.operationSyntheticSource] =  item.tags[CtxTagKeys.operationSyntheticSource];
-            tagKeysfound.push(CtxTagKeys.operationSyntheticSource);
-        }
-
-        if (item.tags[CtxTagKeys.operationParentId]) {
-            env.tags[CtxTagKeys.operationParentId] = item.tags[CtxTagKeys.operationParentId];
-            tagKeysfound.push(CtxTagKeys.operationParentId);
-        }
-
-        if (item.tags[CtxTagKeys.operationName]) {
-            env.tags[CtxTagKeys.operationName] = item.tags[CtxTagKeys.operationName];
-            tagKeysfound.push(CtxTagKeys.operationName);
-        }
-
-        if (item.tags[CtxTagKeys.operationId]) {
-            env.tags[CtxTagKeys.operationId] = item.tags[CtxTagKeys.operationId];
-            tagKeysfound.push(CtxTagKeys.operationId);
+            if (tr.traceID) {
+                env.tags[CtxTagKeys.operationId] = tr.traceID;
+                tagKeysfound.push(CtxTagKeys.operationId);
+            }
         }
 
         item.tags.forEach(tag => {

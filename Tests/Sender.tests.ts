@@ -247,13 +247,13 @@ export class SenderTests extends TestClass {
                     time: new Date("2018-06-12").toISOString(),
                     iKey: "iKey",
                     ctx: {
-                        "User": {
+                        "user" : {
                             "localId": "TestId",
                             "authId": "AuthenticatedId",
                             "id": "TestId"
                         }
                     },
-                    tags: [{"User": {"AccountId": "TestAccountId"} }],
+                    tags: [{"user.accountId": "TestAccountId"}],
                     baseType: "RemoteDependencyData",
                     baseData: {
                         id: 'some id',
@@ -315,9 +315,9 @@ export class SenderTests extends TestClass {
 
                 // Assert tags
                 Assert.ok(appInsightsEnvelope.tags);
-                Assert.ok("TestAccountId", appInsightsEnvelope.tags["ai.user.accountId"]);
-                Assert.ok("AuthenticatedId", appInsightsEnvelope.tags["ai.user.authUserId"]);
-                Assert.ok("TestId", appInsightsEnvelope.tags["ai.user.id"]);
+                Assert.equal("TestAccountId", appInsightsEnvelope.tags["ai.user.accountId"]);
+                Assert.equal("AuthenticatedId", appInsightsEnvelope.tags["ai.user.authUserId"]);
+                Assert.equal("TestId", appInsightsEnvelope.tags["ai.user.id"]);
 
                 // Assert name
                 Assert.ok(appInsightsEnvelope.name);
@@ -341,13 +341,17 @@ export class SenderTests extends TestClass {
                     time: new Date("2018-06-12").toISOString(),
                     iKey: "iKey",
                     ctx: {
-                        "User": {
+                        "user": {
                             "localId": "TestId",
                             "authId": "AuthenticatedId",
                             "id": "TestId"
+                        },
+                        "trace": {
+                            "traceID": "1528B5FF-6455-4657-BE77-E6664CAC72DC",
+                            "parentID": "1528B5FF-6455-4657-BE77-E6664CACEEEE"
                         }
                     },
-                    tags: [{"User": {"AccountId": "TestAccountId"} }],
+                    tags: [{"user.accountId": "TestAccountId"}],
                     baseType: "PageviewData",
                     baseData: {
                         "name": "Page View Name",
@@ -400,9 +404,9 @@ export class SenderTests extends TestClass {
 
                 // Assert tags
                 Assert.ok(appInsightsEnvelope.tags);
-                Assert.ok("TestAccountId", appInsightsEnvelope.tags["ai.user.accountId"]);
-                Assert.ok("AuthenticatedId", appInsightsEnvelope.tags["ai.user.authUserId"]);
-                Assert.ok("TestId", appInsightsEnvelope.tags["ai.user.id"]);
+                Assert.equal("TestAccountId", appInsightsEnvelope.tags["ai.user.accountId"]);
+                Assert.equal("AuthenticatedId", appInsightsEnvelope.tags["ai.user.authUserId"]);
+                Assert.equal("TestId", appInsightsEnvelope.tags["ai.user.id"]);
 
                 // Assert.equal("d041d2e5fa834b4f9eee41ac163bf402", appInsightsEnvelope.tags["ai.session.id"]);
                 // Assert.equal("browser", appInsightsEnvelope.tags["ai.device.id"]);
@@ -419,6 +423,9 @@ export class SenderTests extends TestClass {
 
                 // Assert timestamp
                 Assert.ok(appInsightsEnvelope.time);
+
+                Assert.equal("1528B5FF-6455-4657-BE77-E6664CAC72DC", appInsightsEnvelope.tags["ai.operation.id"]);
+                Assert.equal("1528B5FF-6455-4657-BE77-E6664CACEEEE", appInsightsEnvelope.tags["ai.operation.parentId"])
             }
         });
 
@@ -446,13 +453,13 @@ export class SenderTests extends TestClass {
                         "measurement3": 3.0
                     },
                     ctx: {
-                        "User": {
+                        "user": {
                             "localId": "TestId",
                             "authId": "AuthenticatedId",
                             "id": "TestId"
                         }
                     },
-                    tags: [{"User": {"AccountId": "TestAccountId"} }],
+                    tags: [{"user.accountId": "TestAccountId"}],
                 };
 
                 // Act
