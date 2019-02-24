@@ -113,7 +113,7 @@ export class SenderTests extends TestClass {
                     name: "test",
                     time: new Date("2018-06-12").toISOString(),
                     iKey: "iKey",
-                    ctx: {
+                    ext: {
                         "ai.session.id": "d041d2e5fa834b4f9eee41ac163bf402",
                         "ai.device.id": "browser",
                         "ai.device.type": "Browser",
@@ -187,7 +187,7 @@ export class SenderTests extends TestClass {
                     name: "test",
                     time: new Date("2018-06-12").toISOString(),
                     iKey: "iKey",
-                    ctx: {
+                    ext: {
                         "ai.session.id": "d041d2e5fa834b4f9eee41ac163bf402",
                         "ai.device.id": "browser",
                         "ai.device.type": "Browser",
@@ -246,7 +246,7 @@ export class SenderTests extends TestClass {
                     name: "test",
                     time: new Date("2018-06-12").toISOString(),
                     iKey: "iKey",
-                    ctx: {
+                    ext: {
                         "user" : {
                             "localId": "TestId",
                             "authId": "AuthenticatedId",
@@ -340,7 +340,7 @@ export class SenderTests extends TestClass {
                     name: "test",
                     time: new Date("2018-06-12").toISOString(),
                     iKey: "iKey",
-                    ctx: {
+                    ext: {
                         "user": {
                             "localId": "TestId",
                             "authId": "AuthenticatedId",
@@ -452,7 +452,7 @@ export class SenderTests extends TestClass {
                         "property3": "val3",
                         "measurement3": 3.0
                     },
-                    ctx: {
+                    ext: {
                         "user": {
                             "localId": "TestId",
                             "authId": "AuthenticatedId",

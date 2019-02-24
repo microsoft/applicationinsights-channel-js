@@ -139,8 +139,8 @@ export abstract class EnvelopeCreator {
             env.tags = [];
         }
 
-        if (!item.ctx) {
-            item.ctx = {};
+        if (!item.ext) {
+            item.ext = {};
         }
 
         if (!item.tags) {
@@ -155,19 +155,19 @@ export abstract class EnvelopeCreator {
             env.tags[CtxTagKeys.applicationBuild] = item.tags[UnmappedKeys.applicationBuild];
         }
 
-        if (item.ctx.user) {
-            if (item.ctx.user.authId) {
-                env.tags[CtxTagKeys.userAuthUserId] = item.ctx.user.authId;
+        if (item.ext.user) {
+            if (item.ext.user.authId) {
+                env.tags[CtxTagKeys.userAuthUserId] = item.ext.user.authId;
             }
 
-            if (item.ctx.user.localId) {
-                env.tags[CtxTagKeys.userId] = item.ctx.user.localId;
+            if (item.ext.user.localId) {
+                env.tags[CtxTagKeys.userId] = item.ext.user.localId;
             }
         }
 
-        if (item.ctx.app) {
-            if (item.ctx.app.sesId) {
-                env.tags[CtxTagKeys.sessionId] = item.ctx.app.sesId;
+        if (item.ext.app) {
+            if (item.ext.app.sesId) {
+                env.tags[CtxTagKeys.sessionId] = item.ext.app.sesId;
             }
         }
 
@@ -175,21 +175,21 @@ export abstract class EnvelopeCreator {
             env.tags[CtxTagKeys.sessionIsFirst] = item.tags[CtxTagKeys.sessionIsFirst];
         }
 
-        if (item.ctx.device) {
-            if (item.ctx.device.localId) {
-                env.tags[CtxTagKeys.deviceId] = item.ctx.device.localId;
+        if (item.ext.device) {
+            if (item.ext.device.localId) {
+                env.tags[CtxTagKeys.deviceId] = item.ext.device.localId;
             }
         }
 
-        if (item.ctx.ingest) {
-            if (item.ctx.ingest.clientIp) {
-                env.tags[CtxTagKeys.deviceIp] = item.ctx.ingest.clientIp;
+        if (item.ext.ingest) {
+            if (item.ext.ingest.clientIp) {
+                env.tags[CtxTagKeys.deviceIp] = item.ext.ingest.clientIp;
             }
         }
 
-        if (item.ctx.web) {
-            if (item.ctx.web.browserLang) {
-                env.tags[CtxTagKeys.deviceLanguage] = item.ctx.web.browserLang;
+        if (item.ext.web) {
+            if (item.ext.web.browserLang) {
+                env.tags[CtxTagKeys.deviceLanguage] = item.ext.web.browserLang;
             }
         }
 
@@ -197,9 +197,9 @@ export abstract class EnvelopeCreator {
             env.tags[CtxTagKeys.deviceLocale] = item.tags[UnmappedKeys.deviceLocale];
         }
 
-        if (item.ctx.device) {
-            if (item.ctx.device.model) {
-                env.tags[CtxTagKeys.deviceModel] = item.ctx.device.model;
+        if (item.ext.device) {
+            if (item.ext.device.model) {
+                env.tags[CtxTagKeys.deviceModel] = item.ext.device.model;
             }
         }
 
@@ -215,18 +215,18 @@ export abstract class EnvelopeCreator {
             env.tags[CtxTagKeys.deviceOSVersion] = item.tags[UnmappedKeys.deviceOSVersion];
         }
 
-        if (item.ctx.os) {
-            if (item.ctx.os.deviceOS) {
-                env.tags[CtxTagKeys.deviceOS] = item.ctx.os.deviceOS;
+        if (item.ext.os) {
+            if (item.ext.os.deviceOS) {
+                env.tags[CtxTagKeys.deviceOS] = item.ext.os.deviceOS;
             }
         }
 
         if (item.tags[UnmappedKeys.deviceNetwork]) {
             env.tags[CtxTagKeys.deviceNetwork] = item.tags[UnmappedKeys.deviceNetwork];
         }
-        if (item.ctx.device) {
-            if (item.ctx.device.deviceType) {
-                env.tags[CtxTagKeys.deviceType] = item.ctx.device.deviceType;
+        if (item.ext.device) {
+            if (item.ext.device.deviceType) {
+                env.tags[CtxTagKeys.deviceType] = item.ext.device.deviceType;
             }
         }
 
@@ -234,9 +234,9 @@ export abstract class EnvelopeCreator {
             env.tags[CtxTagKeys.deviceOSVersion] = item.tags[UnmappedKeys.deviceOSVersion];
         }
 
-        if (item.ctx.web) {
-            if (item.ctx.web.screenRes) {
-                env.tags[CtxTagKeys.deviceScreenResolution] = item.ctx.web.screenRes;
+        if (item.ext.web) {
+            if (item.ext.web.screenRes) {
+                env.tags[CtxTagKeys.deviceScreenResolution] = item.ext.web.screenRes;
             }
         }
 
@@ -258,13 +258,13 @@ export abstract class EnvelopeCreator {
         
         // No support for mapping Trace.traceState to 2.0 as it is currently empty
 
-        if (item.ctx.trace) {
-            if (item.ctx.trace.parentID) {
-                env.tags[CtxTagKeys.operationParentId] = item.ctx.trace.parentID;
+        if (item.ext.trace) {
+            if (item.ext.trace.parentID) {
+                env.tags[CtxTagKeys.operationParentId] = item.ext.trace.parentID;
             }
             
-            if (item.ctx.trace.traceID) {
-                env.tags[CtxTagKeys.operationId] = item.ctx.trace.traceID;
+            if (item.ext.trace.traceID) {
+                env.tags[CtxTagKeys.operationId] = item.ext.trace.traceID;
             }
         }
 

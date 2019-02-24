@@ -27,7 +27,7 @@
     },
     "dependencies": {
         "@microsoft/applicationinsights-common": "1.0.0-beta.17",
-        "@microsoft/applicationinsights-core-js": "1.0.0-beta.5",
+        "@microsoft/applicationinsights-core-js": "2.0.0-beta.0",
         "tslib": "^1.9.3"
     },
     "license": "MIT"

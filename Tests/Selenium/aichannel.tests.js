@@ -673,11 +673,12 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
          * Maps Part A data from CS 4.0
          */
         EnvelopeCreator.extractPartAExtensions = function (item, env) {
+            // todo: switch to keys from common in this method
             if (!env.tags) {
                 env.tags = [];
             }
-            if (!item.ctx) {
-                item.ctx = {};
+            if (!item.ext) {
+                item.ext = {};
             }
             if (!item.tags) {
                 item.tags = [];
@@ -688,43 +689,43 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
             if (item.tags[applicationinsights_common_2.UnmappedKeys.applicationBuild]) {
                 env.tags[applicationinsights_common_2.CtxTagKeys.applicationBuild] = item.tags[applicationinsights_common_2.UnmappedKeys.applicationBuild];
             }
-            if (item.ctx.user) {
-                if (item.ctx.user.authId) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.userAuthUserId] = item.ctx.user.authId;
+            if (item.ext.user) {
+                if (item.ext.user.authId) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.userAuthUserId] = item.ext.user.authId;
                 }
-                if (item.ctx.user.localId) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.userId] = item.ctx.user.localId;
+                if (item.ext.user.localId) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.userId] = item.ext.user.localId;
                 }
             }
-            if (item.ctx.app) {
-                if (item.ctx.app.sesId) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.sessionId] = item.ctx.app.sesId;
+            if (item.ext.app) {
+                if (item.ext.app.sesId) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.sessionId] = item.ext.app.sesId;
                 }
             }
             if (item.tags[applicationinsights_common_2.CtxTagKeys.sessionIsFirst]) {
                 env.tags[applicationinsights_common_2.CtxTagKeys.sessionIsFirst] = item.tags[applicationinsights_common_2.CtxTagKeys.sessionIsFirst];
             }
-            if (item.ctx.device) {
-                if (item.ctx.device.localId) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceId] = item.ctx.device.localId;
+            if (item.ext.device) {
+                if (item.ext.device.localId) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceId] = item.ext.device.localId;
                 }
             }
-            if (item.ctx.ingest) {
-                if (item.ctx.ingest.clientIp) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceIp] = item.ctx.ingest.clientIp;
+            if (item.ext.ingest) {
+                if (item.ext.ingest.clientIp) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceIp] = item.ext.ingest.clientIp;
                 }
             }
-            if (item.ctx.web) {
-                if (item.ctx.web.browserLang) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceLanguage] = item.ctx.web.browserLang;
+            if (item.ext.web) {
+                if (item.ext.web.browserLang) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceLanguage] = item.ext.web.browserLang;
                 }
             }
             if (item.tags[applicationinsights_common_2.UnmappedKeys.deviceLocale]) {
                 env.tags[applicationinsights_common_2.CtxTagKeys.deviceLocale] = item.tags[applicationinsights_common_2.UnmappedKeys.deviceLocale];
             }
-            if (item.ctx.device) {
-                if (item.ctx.device.model) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceModel] = item.ctx.device.model;
+            if (item.ext.device) {
+                if (item.ext.device.model) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceModel] = item.ext.device.model;
                 }
             }
             if (item.tags[applicationinsights_common_2.UnmappedKeys.deviceNetwork]) {
@@ -736,25 +737,25 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
             if (item.tags[applicationinsights_common_2.UnmappedKeys.deviceOSVersion]) {
                 env.tags[applicationinsights_common_2.CtxTagKeys.deviceOSVersion] = item.tags[applicationinsights_common_2.UnmappedKeys.deviceOSVersion];
             }
-            if (item.ctx.os) {
-                if (item.ctx.os.deviceOS) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceOS] = item.ctx.os.deviceOS;
+            if (item.ext.os) {
+                if (item.ext.os.deviceOS) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceOS] = item.ext.os.deviceOS;
                 }
             }
             if (item.tags[applicationinsights_common_2.UnmappedKeys.deviceNetwork]) {
                 env.tags[applicationinsights_common_2.CtxTagKeys.deviceNetwork] = item.tags[applicationinsights_common_2.UnmappedKeys.deviceNetwork];
             }
-            if (item.ctx.device) {
-                if (item.ctx.device.deviceType) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceType] = item.ctx.device.deviceType;
+            if (item.ext.device) {
+                if (item.ext.device.deviceType) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceType] = item.ext.device.deviceType;
                 }
             }
             if (item.tags[applicationinsights_common_2.UnmappedKeys.deviceOSVersion]) {
                 env.tags[applicationinsights_common_2.CtxTagKeys.deviceOSVersion] = item.tags[applicationinsights_common_2.UnmappedKeys.deviceOSVersion];
             }
-            if (item.ctx.web) {
-                if (item.ctx.web.screenRes) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceScreenResolution] = item.ctx.web.screenRes;
+            if (item.ext.web) {
+                if (item.ext.web.screenRes) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.deviceScreenResolution] = item.ext.web.screenRes;
                 }
             }
             if (item.tags[applicationinsights_common_2.SampleRate]) {
@@ -770,15 +771,29 @@ define("src/EnvelopeCreator", ["require", "exports", "@microsoft/applicationinsi
                 env.tags[applicationinsights_common_2.CtxTagKeys.internalAgentVersion] = item.tags[applicationinsights_common_2.CtxTagKeys.internalAgentVersion];
             }
             // No support for mapping Trace.traceState to 2.0 as it is currently empty
-            // todo: switch to keys from common
-            if (item.ctx.trace) {
-                if (item.ctx.trace.parentID) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.operationParentId] = item.ctx.trace.parentID;
+            if (item.ext.trace) {
+                if (item.ext.trace.parentID) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.operationParentId] = item.ext.trace.parentID;
                 }
-                if (item.ctx.trace.traceID) {
-                    env.tags[applicationinsights_common_2.CtxTagKeys.operationId] = item.ctx.trace.traceID;
+                if (item.ext.trace.traceID) {
+                    env.tags[applicationinsights_common_2.CtxTagKeys.operationId] = item.ext.trace.traceID;
                 }
             }
+            // Sample 4.0 schema
+            //  {
+            //     "time" : "2018-09-05T22:51:22.4936Z",
+            //     "name" : "MetricWithNamespace",
+            //     "iKey" : "ABC-5a4cbd20-e601-4ef5-a3c6-5d6577e4398e",
+            //     "ext": {  "cloud": {
+            //          "role": "WATSON3",
+            //          "roleInstance": "CO4AEAP00000260"
+            //      }, 
+            //      "device": {}, "correlation": {} },
+            //      "tags": [
+            //        { "amazon.region" : "east2" },
+            //        { "os.expid" : "wp:02df239" }
+            //     ]
+            //   }
             // remaining items in tags, attempt to map to 2.0 schema
             item.tags.forEach(function (tag) {
                 var _loop_1 = function (key) {
@@ -2078,7 +2093,7 @@ define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline",
                         name: "test",
                         time: new Date("2018-06-12").toISOString(),
                         iKey: "iKey",
-                        ctx: {
+                        ext: {
                             "ai.session.id": "d041d2e5fa834b4f9eee41ac163bf402",
                             "ai.device.id": "browser",
                             "ai.device.type": "Browser",
@@ -2141,7 +2156,7 @@ define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline",
                         name: "test",
                         time: new Date("2018-06-12").toISOString(),
                         iKey: "iKey",
-                        ctx: {
+                        ext: {
                             "ai.session.id": "d041d2e5fa834b4f9eee41ac163bf402",
                             "ai.device.id": "browser",
                             "ai.device.type": "Browser",
@@ -2195,7 +2210,7 @@ define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline",
                         name: "test",
                         time: new Date("2018-06-12").toISOString(),
                         iKey: "iKey",
-                        ctx: {
+                        ext: {
                             "user": {
                                 "localId": "TestId",
                                 "authId": "AuthenticatedId",
@@ -2276,7 +2291,7 @@ define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline",
                         name: "test",
                         time: new Date("2018-06-12").toISOString(),
                         iKey: "iKey",
-                        ctx: {
+                        ext: {
                             "user": {
                                 "localId": "TestId",
                                 "authId": "AuthenticatedId",
@@ -2374,7 +2389,7 @@ define("Tests/Sender.tests", ["require", "exports", "src/Sender", "src/Offline",
                             "property3": "val3",
                             "measurement3": 3.0
                         },
-                        ctx: {
+                        ext: {
                             "user": {
                                 "localId": "TestId",
                                 "authId": "AuthenticatedId",
