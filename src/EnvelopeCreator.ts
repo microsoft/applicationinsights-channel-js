@@ -134,14 +134,13 @@ export abstract class EnvelopeCreator {
      * Maps Part A data from CS 4.0
      */
     private static extractPartAExtensions(item: ITelemetryItem, env: IEnvelope) {
-        let keysFound = [];
-        let tagKeysfound = [];
+        // todo: switch to keys from common in this method
         if (!env.tags) {
             env.tags = [];
         }
 
-        if (!item.ctx) {
-            item.ctx = {};
+        if (!item.ext) {
+            item.ext = {};
         }
 
         if (!item.tags) {
@@ -150,154 +149,153 @@ export abstract class EnvelopeCreator {
 
         if (item.tags[UnmappedKeys.applicationVersion]) {
             env.tags[CtxTagKeys.applicationVersion] = item.tags[UnmappedKeys.applicationVersion];
-            tagKeysfound.push(UnmappedKeys.applicationVersion);
         }
 
         if (item.tags[UnmappedKeys.applicationBuild]) {
             env.tags[CtxTagKeys.applicationBuild] = item.tags[UnmappedKeys.applicationBuild];
-            tagKeysfound.push(UnmappedKeys.applicationBuild);
         }
 
-        if (item.ctx[UserExtensionKeys.authId]) {
-            env.tags[CtxTagKeys.userAuthUserId] = item.ctx[UserExtensionKeys.authId];
-            tagKeysfound.push(UserExtensionKeys.authId);
+        if (item.ext.user) {
+            if (item.ext.user.authId) {
+                env.tags[CtxTagKeys.userAuthUserId] = item.ext.user.authId;
+            }
+
+            if (item.ext.user.localId) {
+                env.tags[CtxTagKeys.userId] = item.ext.user.localId;
+            }
         }
 
-        if (item.ctx[UserExtensionKeys.localId]) {
-            env.tags[CtxTagKeys.userId] = item.ctx[UserExtensionKeys.localId];
-            tagKeysfound.push(UserExtensionKeys.localId);
-        }
-
-        if (item.ctx[AppExtensionKeys.sessionId]) {
-            env.tags[CtxTagKeys.sessionId] = item.ctx[AppExtensionKeys.sessionId];
-            keysFound.push(AppExtensionKeys.sessionId);
+        if (item.ext.app) {
+            if (item.ext.app.sesId) {
+                env.tags[CtxTagKeys.sessionId] = item.ext.app.sesId;
+            }
         }
 
         if (item.tags[CtxTagKeys.sessionIsFirst]) {
             env.tags[CtxTagKeys.sessionIsFirst] = item.tags[CtxTagKeys.sessionIsFirst];
-            tagKeysfound.push(CtxTagKeys.sessionIsFirst);
         }
 
-        if (item.ctx[DeviceExtensionKeys.localId]) {
-            env.tags[CtxTagKeys.deviceId] = item.ctx[DeviceExtensionKeys.localId];
-            keysFound.push(DeviceExtensionKeys.localId);
+        if (item.ext.device) {
+            if (item.ext.device.localId) {
+                env.tags[CtxTagKeys.deviceId] = item.ext.device.localId;
+            }
         }
 
-        if (item.ctx[IngestExtKeys.clientIp]) {
-            env.tags[CtxTagKeys.deviceIp] = item.ctx[IngestExtKeys.clientIp];
-            tagKeysfound.push(IngestExtKeys.clientIp);
+        if (item.ext.ingest) {
+            if (item.ext.ingest.clientIp) {
+                env.tags[CtxTagKeys.deviceIp] = item.ext.ingest.clientIp;
+            }
         }
 
-        if (item.ctx[WebExtensionKeys.browserLang]) {
-            env.tags[CtxTagKeys.deviceLanguage] = item.ctx[WebExtensionKeys.browserLang];
-            keysFound.push(WebExtensionKeys.browserLang);
+        if (item.ext.web) {
+            if (item.ext.web.browserLang) {
+                env.tags[CtxTagKeys.deviceLanguage] = item.ext.web.browserLang;
+            }
         }
 
         if (item.tags[UnmappedKeys.deviceLocale]) {
             env.tags[CtxTagKeys.deviceLocale] = item.tags[UnmappedKeys.deviceLocale];
-            tagKeysfound.push(UnmappedKeys.deviceLocale);
         }
 
-        if (item.ctx[DeviceExtensionKeys.model] ) {
-            env.tags[CtxTagKeys.deviceModel] = item.ctx[DeviceExtensionKeys.model];
-            keysFound.push(DeviceExtensionKeys.model);
+        if (item.ext.device) {
+            if (item.ext.device.model) {
+                env.tags[CtxTagKeys.deviceModel] = item.ext.device.model;
+            }
         }
 
-        if (item.ctx[UnmappedKeys.deviceNetwork]) {
-            env.tags[CtxTagKeys.deviceNetwork] = item.ctx[UnmappedKeys.deviceNetwork];
-            keysFound.push(UnmappedKeys.deviceNetwork);
+        if (item.tags[UnmappedKeys.deviceNetwork]) {
+            env.tags[CtxTagKeys.deviceNetwork] = item.tags[UnmappedKeys.deviceNetwork];
         }
 
-        if (item.ctx[UnmappedKeys.deviceOEMName]) {
-            env.tags[CtxTagKeys.deviceOEMName] = item.ctx[UnmappedKeys.deviceOEMName];
-            keysFound.push(UnmappedKeys.deviceOSVersion);
-        }
-
-        if (item.tags[UnmappedKeys.deviceOSVersion]) {
-            env.tags[CtxTagKeys.deviceOSVersion] = item.tags[UnmappedKeys.deviceOSVersion];
-            tagKeysfound.push(UnmappedKeys.deviceOSVersion);
-        }
-
-        if (item.ctx[OSExtKeys.deviceOS]) {
-            env.tags[CtxTagKeys.deviceOS] = item.ctx[OSExtKeys.deviceOS];
-            keysFound.push(OSExtKeys.deviceOS);
-        }
-
-        if (item.ctx[UnmappedKeys.deviceNetwork]) {
-            env.tags[CtxTagKeys.deviceNetwork] = item.ctx[UnmappedKeys.deviceNetwork];
-            keysFound.push(UnmappedKeys.deviceNetwork);
-        }
-
-        if (item.ctx[DeviceExtensionKeys.deviceType]) {
-            env.tags[CtxTagKeys.deviceType] = item.ctx[DeviceExtensionKeys.deviceType];
-            keysFound.push(DeviceExtensionKeys.deviceType);
+        if (item.tags[UnmappedKeys.deviceOEMName]) {
+            env.tags[CtxTagKeys.deviceOEMName] = item.tags[UnmappedKeys.deviceOEMName];
         }
 
         if (item.tags[UnmappedKeys.deviceOSVersion]) {
             env.tags[CtxTagKeys.deviceOSVersion] = item.tags[UnmappedKeys.deviceOSVersion];
-            tagKeysfound.push(UnmappedKeys.deviceOSVersion);
         }
 
-        if (item.tags[WebExtensionKeys.screenRes]) {
-            env.tags[CtxTagKeys.deviceScreenResolution] = item.tags[WebExtensionKeys.screenRes];
-            tagKeysfound.push(WebExtensionKeys.screenRes);
+        if (item.ext.os) {
+            if (item.ext.os.deviceOS) {
+                env.tags[CtxTagKeys.deviceOS] = item.ext.os.deviceOS;
+            }
+        }
+
+        if (item.tags[UnmappedKeys.deviceNetwork]) {
+            env.tags[CtxTagKeys.deviceNetwork] = item.tags[UnmappedKeys.deviceNetwork];
+        }
+        if (item.ext.device) {
+            if (item.ext.device.deviceType) {
+                env.tags[CtxTagKeys.deviceType] = item.ext.device.deviceType;
+            }
+        }
+
+        if (item.tags[UnmappedKeys.deviceOSVersion]) {
+            env.tags[CtxTagKeys.deviceOSVersion] = item.tags[UnmappedKeys.deviceOSVersion];
+        }
+
+        if (item.ext.web) {
+            if (item.ext.web.screenRes) {
+                env.tags[CtxTagKeys.deviceScreenResolution] = item.ext.web.screenRes;
+            }
         }
 
         if (item.tags[SampleRate]) {
             env.tags.sampleRate = item.tags[SampleRate];
-            tagKeysfound.push(SampleRate);
         }
 
         if (item.tags[CtxTagKeys.locationIp]) {
             env.tags[CtxTagKeys.locationIp] = item.tags[CtxTagKeys.locationIp];
-            tagKeysfound.push(CtxTagKeys.locationIp);
         }
 
         if (item.tags[CtxTagKeys.internalSdkVersion]) {
             env.tags[CtxTagKeys.internalSdkVersion] = item.tags[CtxTagKeys.internalSdkVersion];
-            tagKeysfound.push(CtxTagKeys.internalSdkVersion);
         }
 
         if (item.tags[CtxTagKeys.internalAgentVersion]) {
             env.tags[CtxTagKeys.internalAgentVersion] = item.tags[CtxTagKeys.internalAgentVersion];
-            tagKeysfound.push(CtxTagKeys.internalAgentVersion);
+        }
+        
+        // No support for mapping Trace.traceState to 2.0 as it is currently empty
+
+        if (item.ext.trace) {
+            if (item.ext.trace.parentID) {
+                env.tags[CtxTagKeys.operationParentId] = item.ext.trace.parentID;
+            }
+            
+            if (item.ext.trace.traceID) {
+                env.tags[CtxTagKeys.operationId] = item.ext.trace.traceID;
+            }
         }
 
-        if (item.tags[CtxTagKeys.operationRootId]) {
-            env.tags[CtxTagKeys.operationRootId] = item.tags[CtxTagKeys.operationRootId];
-            tagKeysfound.push(CtxTagKeys.operationRootId);
-        }
-
-        if (item.tags[CtxTagKeys.operationSyntheticSource]) {
-            env.tags[CtxTagKeys.operationSyntheticSource] =  item.tags[CtxTagKeys.operationSyntheticSource];
-            tagKeysfound.push(CtxTagKeys.operationSyntheticSource);
-        }
-
-        if (item.tags[CtxTagKeys.operationParentId]) {
-            env.tags[CtxTagKeys.operationParentId] = item.tags[CtxTagKeys.operationParentId];
-            tagKeysfound.push(CtxTagKeys.operationParentId);
-        }
-
-        if (item.tags[CtxTagKeys.operationName]) {
-            env.tags[CtxTagKeys.operationName] = item.tags[CtxTagKeys.operationName];
-            tagKeysfound.push(CtxTagKeys.operationName);
-        }
-
-        if (item.tags[CtxTagKeys.operationId]) {
-            env.tags[CtxTagKeys.operationId] = item.tags[CtxTagKeys.operationId];
-            tagKeysfound.push(CtxTagKeys.operationId);
-        }
-
+        // Sample 4.0 schema
+        //  {
+        //     "time" : "2018-09-05T22:51:22.4936Z",
+        //     "name" : "MetricWithNamespace",
+        //     "iKey" : "ABC-5a4cbd20-e601-4ef5-a3c6-5d6577e4398e",
+        //     "ext": {  "cloud": {
+        //          "role": "WATSON3",
+        //          "roleInstance": "CO4AEAP00000260"
+        //      }, 
+        //      "device": {}, "correlation": {} },
+        //      "tags": [
+        //        { "amazon.region" : "east2" },
+        //        { "os.expid" : "wp:02df239" }
+        //     ]
+        //   }
+          
+        // remaining items in tags, attempt to map to 2.0 schema
         item.tags.forEach(tag => {
             for (let key in tag) {
-                if (tag.hasOwnProperty(key)) {
-                    if (tagKeysfound.indexOf(tag) < 0) {
-                        if (ContextTagKeys.indexOf(key) >= 0) {
-                                env.tags[key] = tag[key];
-                            }
-                        }
-                    }
+                if (env.tags.key) {
+                    continue; // already added
                 }
+                ContextTagKeys.forEach(ct => {
+                    if (ct.indexOf(key) > 0) { // if field exists in 2.0
+                        env.tags[ct] = tag[key];
+                    }
+                });
+            }
         });
     }
 }
